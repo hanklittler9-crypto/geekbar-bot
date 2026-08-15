@@ -42,6 +42,8 @@ export async function handleCloud(interaction) {
       return handleQuote(interaction);
     case 'roast':
       return handleRoast(interaction);
+    case 'highlow':
+      return handleHighlow(interaction);
     default:
       return interaction.reply({ content: 'Unknown cloud command.', ephemeral: true });
   }
@@ -376,4 +378,34 @@ export async function handleRoast(interaction) {
     gif,
     'roast.gif',
   );
+}
+
+export async function handleHighlow(interaction) {
+  const call = interaction.options.getString('call', true);
+  const bet = interaction.options.getInteger('bet') ?? 20;
+  const user = await loadProfile(interaction);
+  if (await denyCooldown(interaction, user.last_flip, GAME.flipCooldownMs, 'Highlow')) return;
+  if (user.clouds < bet) {
+    return interaction.reply({ embeds: [errorEmbed(`Need **${bet}** clouds.`)], ephemeral: true });
+  }
+  await interaction.deferReply();
+  const first = randInt(1, 10);
+  const second = randInt(1, 10);
+  const higher = second > first;
+  const win = (call === 'high' && higher) || (call === 'low' && !higher && second !== first);
+  const tie = second === first;
+  const delta = tie ? 0 : win ? bet : -bet;
+  const next = updateUser(interaction.user.id, guildIdOf(interaction), {
+    clouds: user.clouds + delta,
+    last_flip: now(),
+  });
+  const gif = await renderSceneGif(win ? 'lucky' : 'drop', next, {
+    success: win,
+    subtitle: `${first} → ${second}`,
+    line: tie ? 'push' : win ? `+${bet}` : `-${bet}`,
+  });
+  const text = tie
+    ? `**${first}** then **${second}**. Push. Bet returned.`
+    : `**${first}** then **${second}**. You called **${call}**. ${win ? `Won **${bet}**.` : `Lost **${bet}**.`}`;
+  return replyGif(interaction, okEmbed(win ? '📈 Hit' : tie ? '😐 Push' : '📉 Miss', text, win ? '#00F5A0' : '#FF5C5C'), gif, 'highlow.gif');
 }

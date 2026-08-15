@@ -240,7 +240,81 @@ export const cloudCommand = new SlashCommandBuilder()
       .setName('roast')
       .setDescription("Roast someone's Geek Bar")
       .addUserOption((opt) => opt.setName('user').setDescription('Who to roast')),
+  )
+  .addSubcommand((sub) =>
+    sub
+      .setName('highlow')
+      .setDescription('Guess if the next roll is higher or lower')
+      .addStringOption((opt) =>
+        opt
+          .setName('call')
+          .setDescription('Higher or lower')
+          .setRequired(true)
+          .addChoices({ name: 'Higher', value: 'high' }, { name: 'Lower', value: 'low' }),
+      )
+      .addIntegerOption((opt) =>
+        opt.setName('bet').setDescription('Clouds to bet (default 20)').setMinValue(5).setMaxValue(200),
+      ),
   );
+
+export const funCommand = new SlashCommandBuilder()
+  .setName('fun')
+  .setDescription('Aura, rizz, 8ball, rate, ship')
+  .setIntegrationTypes(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)
+  .setContexts(...contexts)
+  .addSubcommand((sub) =>
+    sub
+      .setName('8ball')
+      .setDescription('Ask the 8-ball')
+      .addStringOption((opt) => opt.setName('question').setDescription('Your question').setRequired(true)),
+  )
+  .addSubcommand((sub) =>
+    sub
+      .setName('aura')
+      .setDescription('Check aura')
+      .addUserOption((opt) => opt.setName('user').setDescription('Who to scan')),
+  )
+  .addSubcommand((sub) =>
+    sub
+      .setName('rizz')
+      .setDescription('Check rizz')
+      .addUserOption((opt) => opt.setName('user').setDescription('Who to scan')),
+  )
+  .addSubcommand((sub) =>
+    sub
+      .setName('rate')
+      .setDescription('Rate anything 0-100')
+      .addStringOption((opt) => opt.setName('thing').setDescription('What to rate').setRequired(true)),
+  )
+  .addSubcommand((sub) =>
+    sub
+      .setName('ship')
+      .setDescription('Ship two people')
+      .addUserOption((opt) => opt.setName('user1').setDescription('First').setRequired(true))
+      .addUserOption((opt) => opt.setName('user2').setDescription('Second').setRequired(true)),
+  );
+
+export const ipLookupCommand = new SlashCommandBuilder()
+  .setName('iplookup')
+  .setDescription('Look up a public IP or domain (geo/ISP). Not Discord user IPs.')
+  .setIntegrationTypes(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)
+  .setContexts(...contexts)
+  .addStringOption((opt) =>
+    opt.setName('target').setDescription('Public IP or domain, e.g. 8.8.8.8 or discord.com').setRequired(true),
+  );
+
+export const pingCommand = new SlashCommandBuilder()
+  .setName('ping')
+  .setDescription('Bot latency')
+  .setIntegrationTypes(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)
+  .setContexts(...contexts);
+
+export const fakeIpCommand = new SlashCommandBuilder()
+  .setName('fakeip')
+  .setDescription('Joke fake IP trace (not real)')
+  .setIntegrationTypes(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)
+  .setContexts(...contexts)
+  .addUserOption((opt) => opt.setName('user').setDescription('Who to fake-trace'));
 
 export const memeCommands = MEME_GIFS.map((meme) =>
   new SlashCommandBuilder()
@@ -250,6 +324,6 @@ export const memeCommands = MEME_GIFS.map((meme) =>
     .setContexts(...contexts),
 );
 
-export const commands = [geekbarCommand, cloudCommand, ...memeCommands];
+export const commands = [geekbarCommand, cloudCommand, funCommand, ipLookupCommand, pingCommand, fakeIpCommand, ...memeCommands];
 
 export const GIF_EFFECT_CHOICES = GIF_EFFECTS.map((e) => ({ name: `${e.emoji} ${e.name}`, value: e.id }));

@@ -23,6 +23,14 @@ export const MEME_GIFS = [
   { name: 'walk', url: 'https://media.tenor.com/U1C2u1E_QacAAAAM/destroy-lonely-walking.gif', caption: '**WALK**', description: 'Destroy Lonely walking GIF' },
   { name: 'catken', url: 'https://media.tenor.com/KUhukey2i2cAAAAM/ken-carson-cat.gif', caption: '**MEOW**', description: 'Ken Carson cat GIF' },
   { name: 'meechie', url: 'https://media.tenor.com/BEDQTDgUwXwAAAAM/meechie-homixide-gang.gif', caption: '**MEECHIE**', description: 'Homixide Meechie GIF' },
+  { name: 'jumpout', url: 'https://media.tenor.com/hw1_CtA3yEkAAAAM/jumpoutgang.gif', caption: '**JUMPOUT**', description: 'Jumpout gang GIF' },
+  { name: 'osamason', url: 'https://media.tenor.com/5mYoPjgXd9IAAAAM/osamason-jumpout.gif', caption: '**OSAMASON**', description: 'Osamason GIF' },
+  { name: 'agc', url: 'https://media.tenor.com/tCGJiIlTb00AAAAM/ken-carson-agc.gif', caption: '**A GREAT CHAOS**', description: 'Ken Carson AGC GIF' },
+  { name: 'rino', url: 'https://media.tenor.com/P-w9sJP3-CUAAAAM/distroj-lonly-destroy-lonely.gif', caption: '**RINO**', description: 'Destroy Lonely rino GIF' },
+  { name: 'dielit', url: 'https://media.tenor.com/vEMhQWePszsAAAAM/playboi-carti-carti.gif', caption: '**DIE LIT**', description: 'Die Lit Carti GIF' },
+  { name: 'selftitled', url: 'https://media.tenor.com/SOqUb3uDlYcAAAAM/playboi-carti-self-titled.gif', caption: '**SELF TITLED**', description: 'Self Titled Carti GIF' },
+  { name: 'kenchain', url: 'https://media.tenor.com/2oIjDRthxfgAAAAM/ken-carson-ken-carson-chain.gif', caption: '**CHAIN**', description: 'Ken Carson chain GIF' },
+  { name: 'lonesleep', url: 'https://media.tenor.com/B235GeQHIEEAAAAM/destroy-lonely-sleep.gif', caption: '**ASLEEP**', description: 'Destroy Lonely sleep GIF' },
 ];
 
 export function getMeme(name) {

@@ -239,7 +239,7 @@ export async function handleHelp(interaction) {
         name: 'Cloud minigames',
         value: [
           '`/cloud slots` `flip` `pack` `chain`',
-          '`/cloud lucky` `drop` `drip` `inspect` `crash` `quote` `roast`',
+          '`/cloud lucky` `drop` `drip` `inspect` `crash` `quote` `roast` `highlow`',
         ].join('\n'),
       },
       {
@@ -262,6 +262,16 @@ export async function handleHelp(interaction) {
           '`/kencarson` `/kendance` `/opium` `/lone` `/homixide` `/yvl`',
           '`/yeat` `/twizzy` `/summrs` `/kankan` `/izaya` `/vamp` `/music`',
           '`/slowdown` `/blonde` `/walk` `/catken` `/meechie` `/perkpop`',
+          '`/jumpout` `/osamason` `/agc` `/rino` `/dielit` `/selftitled` `/kenchain` `/lonesleep`',
+        ].join('\n'),
+      },
+      {
+        name: 'Fun / net',
+        value: [
+          '`/fun 8ball` `aura` `rizz` `rate` `ship`',
+          '`/iplookup` — public IP or domain geo/ISP (not Discord users)',
+          '`/ping` — bot latency',
+          '`/fakeip` — joke fake trace (not real)',
         ].join('\n'),
       },
     );
