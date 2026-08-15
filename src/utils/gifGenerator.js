@@ -310,6 +310,83 @@ export async function renderSceneGif(scene, user, extras = {}) {
       drawVapor(ctx, flavor.color, t, 1);
       drawDevice(ctx, user, flavor, skin, { wrapImage, glow: 1.2, scale: 1.05, tilt: Math.sin(t * 6) * 0.05 });
       drawCaption(ctx, ['FLEX', user.device_name, flavor.name], flavor.color);
+    } else if (scene === 'slots') {
+      const reels = extras.reels || ['💨', '💨', '💎'];
+      drawCaption(ctx, [extras.success ? 'JACKPOT' : 'SLOTS', extras.subtitle || '', extras.line || ''], extras.success ? '#FFD700' : flavor.color);
+      reels.forEach((icon, idx) => {
+        const bx = 70 + idx * 90;
+        const by = 90 + (t < 0.7 ? Math.sin((t + idx) * 18) * 18 : 0);
+        roundRect(ctx, bx, 70, 78, 90, 16);
+        ctx.fillStyle = 'rgba(0,0,0,0.55)';
+        ctx.fill();
+        ctx.strokeStyle = rgb(flavor.color, 0.8);
+        ctx.stroke();
+        ctx.font = font(36, true);
+        ctx.fillStyle = '#fff';
+        ctx.fillText(icon, bx + 18, by + 40);
+      });
+    } else if (scene === 'pack') {
+      const open = t;
+      roundRect(ctx, 120, 70 + open * -20, 120, 90, 16);
+      ctx.fillStyle = rgb(flavor.color, 0.35);
+      ctx.fill();
+      ctx.strokeStyle = '#FFD700';
+      ctx.lineWidth = 3;
+      roundRect(ctx, 120, 70 + open * -20, 120, 90, 16);
+      ctx.stroke();
+      ctx.fillStyle = '#fff';
+      ctx.font = font(22, true);
+      ctx.fillText(extras.subtitle || 'PACK', 142, 125 + open * -20);
+      drawVapor(ctx, flavor.color, t, open, 180, 70);
+      drawCaption(ctx, ['MYSTERY PACK', extras.line || '', ''], flavor.color);
+    } else if (scene === 'chain') {
+      drawVapor(ctx, flavor.color, t, 1.6, 200, 40);
+      drawVapor(ctx, flavor.color, (t + 0.33) % 1, 1.2, 160, 80);
+      drawVapor(ctx, flavor.color, (t + 0.66) % 1, 1.0, 240, 90);
+      drawDevice(ctx, user, flavor, skin, { wrapImage, glow: 1.3, tilt: Math.sin(t * 14) * 0.12 });
+      drawCaption(ctx, ['CHAIN HIT', extras.subtitle || 'x3', extras.line || ''], flavor.color);
+    } else if (scene === 'lucky') {
+      ctx.fillStyle = rgb('#FFD700', 0.12 + t * 0.12);
+      ctx.fillRect(0, 0, W, H);
+      drawVapor(ctx, '#FFD700', t, extras.success ? 1.6 : 0.5);
+      drawDevice(ctx, user, flavor, skin, { wrapImage, glow: extras.success ? 1.5 : 0.5, scale: 1 + t * 0.08 });
+      drawCaption(ctx, [extras.success ? 'JACKPOT HIT' : 'LUCKY', extras.subtitle || '', extras.line || ''], '#FFD700');
+    } else if (scene === 'drop') {
+      drawDevice(ctx, user, flavor, skin, { wrapImage, x: 40, scale: 0.75, glow: extras.success ? 1 : 0.3 });
+      roundRect(ctx, 210, 70, 110, 80, 14);
+      ctx.fillStyle = extras.success ? rgb('#00F5A0', 0.4) : rgb('#FF5C5C', 0.3);
+      ctx.fill();
+      ctx.fillStyle = '#fff';
+      ctx.font = font(16, true);
+      ctx.fillText(extras.success ? 'LOOT' : 'EMPTY', 228, 118);
+      drawCaption(ctx, ['STREET DROP', extras.subtitle || '', extras.line || ''], flavor.color);
+    } else if (scene === 'neon') {
+      ctx.fillStyle = '#05060A';
+      ctx.fillRect(0, 0, W, H);
+      const flicker = 0.55 + Math.abs(Math.sin(t * 20)) * 0.45;
+      ctx.shadowColor = extras.color || flavor.color;
+      ctx.shadowBlur = 28 * flicker;
+      ctx.fillStyle = rgb(extras.color || flavor.color, flicker);
+      ctx.font = font(32, true);
+      ctx.fillText((extras.title || 'NEON').slice(0, 14), 40, 110);
+      ctx.font = font(16);
+      ctx.fillText(extras.subtitle || user.device_name, 40, 148);
+      ctx.shadowBlur = 0;
+      drawDevice(ctx, user, { ...flavor, color: extras.color || flavor.color }, skin, {
+        wrapImage,
+        x: 250,
+        scale: 0.7,
+        glow: flicker,
+      });
+    } else if (scene === 'wire') {
+      ctx.strokeStyle = extras.success ? rgb('#00F5A0', 0.9) : rgb('#FF5C5C', 0.9);
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(30, 110);
+      ctx.bezierCurveTo(80, 40 + t * 80, 200, 180 - t * 90, 330, 110);
+      ctx.stroke();
+      drawDevice(ctx, user, flavor, skin, { wrapImage, x: 240, scale: 0.7, glow: extras.success ? 1.2 : 0.2 });
+      drawCaption(ctx, [extras.success ? 'WIRED' : 'SHORT', extras.subtitle || '', extras.line || ''], extras.success ? '#00F5A0' : '#FF5C5C');
     } else if (scene === 'vibe') {
       const intensity = extras.intensity ?? 1;
       drawVapor(ctx, extras.color || flavor.color, t, 0.6 + intensity, 200, 80);

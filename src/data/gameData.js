@@ -56,6 +56,16 @@ export const SHOP_ITEMS = [
   { id: 'repair_kit', name: 'Coil Repair Kit', emoji: '🔧', price: 160, description: 'Fixes a burnt Geek Bar' },
 ];
 
+export const SLOT_ICONS = [
+  { id: 'cloud', icon: '☁️', payout: 2 },
+  { id: 'vapor', icon: '💨', payout: 3 },
+  { id: 'pod', icon: '🧪', payout: 4 },
+  { id: 'battery', icon: '🔋', payout: 5 },
+  { id: 'gem', icon: '💎', payout: 8 },
+  { id: 'fire', icon: '🔥', payout: 10 },
+  { id: 'crown', icon: '👑', payout: 18 },
+];
+
 export const RAID_SPOTS = [
   { id: 'corner', name: 'Corner Store', emoji: '🏪', risk: 0.35, payout: [40, 110], flavorChance: 0.12 },
   { id: 'smoke', name: 'Smoke Shop', emoji: '🧿', risk: 0.48, payout: [80, 180], flavorChance: 0.22 },

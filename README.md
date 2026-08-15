@@ -40,6 +40,20 @@ This is a **fictional game**. It is not affiliated with Geek Bar or Dream Big.
 | `/geekbar heist roulette` | Gamble clouds for a random flavor |
 | `/geekbar heist board` | Active bounties |
 | `/geekbar heist spot` | Raid a corner store, smoke shop, or warehouse |
+| `/geekbar heist wire` | Cut 3 wires in order — high payout minigame |
+| `/geekbar heist vanish` | Smoke bomb: 2 hour raid shield |
+
+### Cloud minigames
+| Command | Description |
+|---------|-------------|
+| `/cloud slots` | Spin reels, optional bet |
+| `/cloud flip` | Heads or tails |
+| `/cloud pack` | Mystery pack — pods, wraps, or clouds |
+| `/cloud chain` | Triple-hit combo GIF (can burn the coil) |
+| `/cloud lucky` | Lucky puff with a rare jackpot |
+| `/cloud drop` | Pick the live crate |
+| `/cloud drip` | Collect idle clouds |
+| `/cloud inspect` | Cloud rating card |
 
 ### Studio (GIFs + image modals)
 | Command | Description |
@@ -48,7 +62,8 @@ This is a **fictional game**. It is not affiliated with Geek Bar or Dream Big.
 | `/geekbar studio render` | **Modal** — poster title/quote/color → PNG |
 | `/geekbar studio lab` | **Modal** — mix a custom flavor pod |
 | `/geekbar studio gif` | Animate an uploaded image (pulse, vapor, glitch, drip, …) |
-| `/geekbar studio wrap` | Upload an image as a custom device wrap |
+| `/geekbar studio neon` | **Modal** — flickering neon sign GIF |
+| `/geekbar studio sticker` | **Modal** — sticker PNG |
 | `/geekbar studio card` | Render a fresh stats PNG |
 | `/geekbar studio skins` | List wraps |
 | `/geekbar studio equip` | Equip a wrap |

@@ -390,6 +390,97 @@ export async function resolveSpot(interaction, spotId) {
   return interaction.followUp({ embeds: [embed], files: [{ attachment: gif, name: 'spot.gif' }] });
 }
 
+const wireGames = new Map();
+
+export async function handleWire(interaction) {
+  const user = await loadProfile(interaction);
+  if (await denyCooldown(interaction, user.last_wire, GAME.wireCooldownMs, 'Wire job')) return;
+  updateUser(interaction.user.id, guildIdOf(interaction), { last_wire: now() });
+  const seq = [0, 1, 2, 3].sort(() => Math.random() - 0.5).slice(0, 3);
+  wireGames.set(interaction.user.id, { seq, step: 0, started: Date.now() });
+  const row = new ActionRowBuilder().addComponents(
+    ['RED', 'GRN', 'BLU', 'YLW'].map((label, i) =>
+      new ButtonBuilder()
+        .setCustomId(`wire:${interaction.user.id}:${i}`)
+        .setLabel(label)
+        .setStyle(ButtonStyle.Secondary),
+    ),
+  );
+  return interaction.reply({
+    embeds: [
+      okEmbed(
+        '🔌 Wire job',
+        'Cut the right 3 wires in order. Wrong cut shorts the board. You get **one** try — feel it out.',
+      ),
+    ],
+    components: [row],
+  });
+}
+
+export async function resolveWire(interaction, index) {
+  const game = wireGames.get(interaction.user.id);
+  if (!game) {
+    return interaction.reply({ embeds: [errorEmbed('That wire job expired.')], ephemeral: true });
+  }
+  await interaction.deferUpdate();
+  const expected = game.seq[game.step];
+  if (index !== expected) {
+    wireGames.delete(interaction.user.id);
+    const disabled = new ActionRowBuilder().addComponents(
+      interaction.message.components[0].components.map((c) => ButtonBuilder.from(c).setDisabled(true)),
+    );
+    await interaction.editReply({ components: [disabled] });
+    const user = await loadProfile(interaction);
+    const fine = Math.min(user.clouds, randInt(15, 40));
+    const next = addClouds(interaction.user.id, guildIdOf(interaction), -fine);
+    const gif = await renderSceneGif('wire', next, { success: false, subtitle: 'short circuit', line: `-${fine} clouds` });
+    const embed = errorEmbed(`Wrong wire. Board fried. Lost **${fine}** clouds.`);
+    embed.setImage('attachment://wire.gif');
+    return interaction.followUp({ embeds: [embed], files: [{ attachment: gif, name: 'wire.gif' }] });
+  }
+  game.step += 1;
+  if (game.step < game.seq.length) {
+    return interaction.followUp({ embeds: [okEmbed('Still live', `Wire ${game.step}/3 good. Keep cutting.`)], ephemeral: true });
+  }
+  wireGames.delete(interaction.user.id);
+  const disabled = new ActionRowBuilder().addComponents(
+    interaction.message.components[0].components.map((c) => ButtonBuilder.from(c).setDisabled(true)),
+  );
+  await interaction.editReply({ components: [disabled] });
+  const payout = randInt(120, 240);
+  const next = addClouds(interaction.user.id, guildIdOf(interaction), payout);
+  const gif = await renderSceneGif('wire', next, { success: true, subtitle: 'silent entry', line: `+${payout} clouds` });
+  const embed = okEmbed('Wired', `Clean cuts. You walked with **${payout} clouds**.`, flavorOf(next).color);
+  embed.setImage('attachment://wire.gif');
+  return interaction.followUp({ embeds: [embed], files: [{ attachment: gif, name: 'wire.gif' }] });
+}
+
+export async function handleVanish(interaction) {
+  const user = await loadProfile(interaction);
+  if (user.clouds < GAME.vanishCost) {
+    return interaction.reply({ embeds: [errorEmbed(`Vanish costs **${GAME.vanishCost}** clouds.`)], ephemeral: true });
+  }
+  await interaction.deferReply();
+  const until = Math.max(user.raid_shield_until, now()) + GAME.vanishMs;
+  const next = updateUser(interaction.user.id, guildIdOf(interaction), {
+    clouds: user.clouds - GAME.vanishCost,
+    raid_shield_until: until,
+    last_vanish: now(),
+  });
+  const gif = await renderSceneGif('vibe', next, {
+    title: 'VANISH',
+    subtitle: '2h shield',
+    line: 'smoke bomb — off the map',
+    color: '#9B6DFF',
+  });
+  return replyGif(
+    interaction,
+    okEmbed('🫥 Vanished', `Raid shield extended ~2 hours. -${GAME.vanishCost} clouds.`, '#9B6DFF'),
+    gif,
+    'vanish.gif',
+  );
+}
+
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }

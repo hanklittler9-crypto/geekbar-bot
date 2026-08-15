@@ -231,6 +231,15 @@ export async function handleHelp(interaction) {
           '`/geekbar heist bounty` — modal to mark someone',
           '`/geekbar heist roulette` — flavor gacha',
           '`/geekbar heist spot` — raid a store',
+          '`/geekbar heist wire` — cut wires minigame',
+          '`/geekbar heist vanish` — 2h smoke shield',
+        ].join('\n'),
+      },
+      {
+        name: 'Cloud minigames',
+        value: [
+          '`/cloud slots` `flip` `pack` `chain`',
+          '`/cloud lucky` `drop` `drip` `inspect`',
         ].join('\n'),
       },
       {
@@ -241,6 +250,8 @@ export async function handleHelp(interaction) {
           '`/geekbar studio lab` — mix a custom flavor',
           '`/geekbar studio gif` — animate an uploaded image',
           '`/geekbar studio wrap` — upload a custom wrap',
+          '`/geekbar studio neon` — neon sign GIF modal',
+          '`/geekbar studio sticker` — sticker PNG modal',
           '`/geekbar studio card` `skins` `equip`',
         ].join('\n'),
       },

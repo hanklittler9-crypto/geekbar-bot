@@ -3,10 +3,11 @@ import { GAME } from '../config.js';
 import { addClouds, addCustomFlavor, countCustomFlavors, updateUser } from '../database/db.js';
 import { SKINS } from '../data/gameData.js';
 import { errorEmbed, flavorOf, okEmbed } from '../utils/embeds.js';
-import { renderSceneGif } from '../utils/gifGenerator.js';
+import { renderSceneGif, renderStill } from '../utils/gifGenerator.js';
 import { guildIdOf, loadProfile, replyGif, replyPng } from '../utils/game.js';
 import { generateRenderPng, generateVibeGif, sanitizeHex } from './studio.js';
-import { resolveChase, resolveSmokeout, resolveSpot } from './heist.js';
+import { resolveChase, resolveSmokeout, resolveSpot, resolveWire } from './heist.js';
+import { resolveDrop } from './extras.js';
 
 export async function handleModal(interaction) {
   const id = interaction.customId;
@@ -14,6 +15,8 @@ export async function handleModal(interaction) {
   if (id === 'modal:vibe') return submitVibe(interaction);
   if (id === 'modal:render') return submitRender(interaction);
   if (id === 'modal:lab') return submitLab(interaction);
+  if (id === 'modal:neon') return submitNeon(interaction);
+  if (id === 'modal:sticker') return submitSticker(interaction);
   if (id.startsWith('modal:bounty:')) return submitBounty(interaction);
 }
 
@@ -38,6 +41,20 @@ export async function handleButton(interaction) {
       return interaction.reply({ embeds: [errorEmbed('This raid is not yours.')], ephemeral: true });
     }
     return resolveSpot(interaction, spotId);
+  }
+  if (id.startsWith('drop:')) {
+    const [, ownerId, result] = id.split(':');
+    if (interaction.user.id !== ownerId) {
+      return interaction.reply({ embeds: [errorEmbed('This drop is not yours.')], ephemeral: true });
+    }
+    return resolveDrop(interaction, result === 'hit');
+  }
+  if (id.startsWith('wire:')) {
+    const [, ownerId, index] = id.split(':');
+    if (interaction.user.id !== ownerId) {
+      return interaction.reply({ embeds: [errorEmbed('This wire job is not yours.')], ephemeral: true });
+    }
+    return resolveWire(interaction, Number(index));
   }
 }
 
@@ -161,4 +178,48 @@ async function submitBounty(interaction) {
       ),
     ],
   });
+}
+
+async function submitNeon(interaction) {
+  const user = await loadProfile(interaction);
+  if (user.clouds < GAME.neonCost) {
+    return interaction.reply({ embeds: [errorEmbed(`Neon GIFs cost **${GAME.neonCost}** clouds.`)], ephemeral: true });
+  }
+  await interaction.deferReply();
+  addClouds(interaction.user.id, guildIdOf(interaction), -GAME.neonCost);
+  const next = await loadProfile(interaction);
+  const color = sanitizeHex(interaction.fields.getTextInputValue('color')) || flavorOf(next).color;
+  const gif = await renderSceneGif('neon', next, {
+    title: interaction.fields.getTextInputValue('text').toUpperCase(),
+    subtitle: interaction.fields.getTextInputValue('sub') || next.device_name,
+    color,
+  });
+  return replyGif(
+    interaction,
+    okEmbed('Neon', interaction.fields.getTextInputValue('text'), color),
+    gif,
+    'neon.gif',
+  );
+}
+
+async function submitSticker(interaction) {
+  const user = await loadProfile(interaction);
+  if (user.clouds < GAME.stickerCost) {
+    return interaction.reply({ embeds: [errorEmbed(`Stickers cost **${GAME.stickerCost}** clouds.`)], ephemeral: true });
+  }
+  await interaction.deferReply();
+  addClouds(interaction.user.id, guildIdOf(interaction), -GAME.stickerCost);
+  const next = await loadProfile(interaction);
+  const png = await renderStill(next, {
+    title: interaction.fields.getTextInputValue('title'),
+    subtitle: flavorOf(next).name,
+    line: interaction.fields.getTextInputValue('line') || next.tagline,
+    color: flavorOf(next).color,
+  });
+  return replyPng(
+    interaction,
+    okEmbed('Sticker', interaction.fields.getTextInputValue('title'), flavorOf(next).color),
+    png,
+    'sticker.png',
+  );
 }

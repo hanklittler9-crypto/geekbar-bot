@@ -118,6 +118,12 @@ export const geekbarCommand = new SlashCommandBuilder()
       .addSubcommand((sub) => sub.setName('board').setDescription('See active bounties'))
       .addSubcommand((sub) =>
         sub.setName('spot').setDescription('Raid a corner store, smoke shop, or warehouse'),
+      )
+      .addSubcommand((sub) =>
+        sub.setName('wire').setDescription('Cut the right wires in order — high payout minigame'),
+      )
+      .addSubcommand((sub) =>
+        sub.setName('vanish').setDescription('Smoke bomb: spend clouds for a 2 hour raid shield'),
       ),
   )
   .addSubcommandGroup((group) =>
@@ -171,9 +177,55 @@ export const geekbarCommand = new SlashCommandBuilder()
         sub
           .setName('skins')
           .setDescription('List built-in and custom wraps'),
+      )
+      .addSubcommand((sub) =>
+        sub.setName('neon').setDescription('Open a modal — flickering neon sign GIF of your text'),
+      )
+      .addSubcommand((sub) =>
+        sub.setName('sticker').setDescription('Open a modal — render a sticker PNG of your Geek Bar'),
       ),
   );
 
-export const commands = [geekbarCommand];
+export const cloudCommand = new SlashCommandBuilder()
+  .setName('cloud')
+  .setDescription('Slots, packs, chain hits, lucky rolls, and other cloud minigames')
+  .setIntegrationTypes(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)
+  .setContexts(...contexts)
+  .addSubcommand((sub) =>
+    sub
+      .setName('slots')
+      .setDescription('Spin flavor slots for clouds')
+      .addIntegerOption((opt) =>
+        opt.setName('bet').setDescription('Clouds to bet (default 25)').setMinValue(10).setMaxValue(250),
+      ),
+  )
+  .addSubcommand((sub) =>
+    sub
+      .setName('flip')
+      .setDescription('Coin flip clouds')
+      .addStringOption((opt) =>
+        opt
+          .setName('side')
+          .setDescription('Heads or tails')
+          .setRequired(true)
+          .addChoices({ name: 'Heads', value: 'heads' }, { name: 'Tails', value: 'tails' }),
+      )
+      .addIntegerOption((opt) =>
+        opt.setName('bet').setDescription('Clouds to bet (default 20)').setMinValue(5).setMaxValue(200),
+      ),
+  )
+  .addSubcommand((sub) => sub.setName('pack').setDescription('Rip a mystery pack — pods, wraps, or clouds'))
+  .addSubcommand((sub) => sub.setName('chain').setDescription('Triple-hit combo GIF. Bigger payout, can burn the coil'))
+  .addSubcommand((sub) => sub.setName('lucky').setDescription('One lucky puff — rare jackpot chance'))
+  .addSubcommand((sub) => sub.setName('drop').setDescription('Street drop — pick the live crate'))
+  .addSubcommand((sub) => sub.setName('drip').setDescription('Collect idle clouds your Geek Bar leaked'))
+  .addSubcommand((sub) =>
+    sub
+      .setName('inspect')
+      .setDescription('Inspect a setup and get a cloud rating card')
+      .addUserOption((opt) => opt.setName('user').setDescription('Who to inspect')),
+  );
+
+export const commands = [geekbarCommand, cloudCommand];
 
 export const GIF_EFFECT_CHOICES = GIF_EFFECTS.map((e) => ({ name: `${e.emoji} ${e.name}`, value: e.id }));

@@ -20,6 +20,65 @@ import { guildIdOf, loadProfile, replyGif, replyPng } from '../utils/game.js';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const skinsDir = join(__dirname, '../../data/skins');
 
+export async function handleStudioNeon(interaction) {
+  const modal = new ModalBuilder().setCustomId('modal:neon').setTitle('Neon sign GIF');
+  modal.addComponents(
+    new ActionRowBuilder().addComponents(
+      new TextInputBuilder()
+        .setCustomId('text')
+        .setLabel('Neon text')
+        .setStyle(TextInputStyle.Short)
+        .setRequired(true)
+        .setMaxLength(14)
+        .setPlaceholder('RIP IT'),
+    ),
+    new ActionRowBuilder().addComponents(
+      new TextInputBuilder()
+        .setCustomId('sub')
+        .setLabel('Small line under it')
+        .setStyle(TextInputStyle.Short)
+        .setRequired(false)
+        .setMaxLength(28)
+        .setPlaceholder('after hours'),
+    ),
+    new ActionRowBuilder().addComponents(
+      new TextInputBuilder()
+        .setCustomId('color')
+        .setLabel('Hex color')
+        .setStyle(TextInputStyle.Short)
+        .setRequired(false)
+        .setMaxLength(7)
+        .setPlaceholder('#FF2BD6'),
+    ),
+  );
+  return interaction.showModal(modal);
+}
+
+export async function handleStudioSticker(interaction) {
+  const modal = new ModalBuilder().setCustomId('modal:sticker').setTitle('Sticker render');
+  modal.addComponents(
+    new ActionRowBuilder().addComponents(
+      new TextInputBuilder()
+        .setCustomId('title')
+        .setLabel('Sticker title')
+        .setStyle(TextInputStyle.Short)
+        .setRequired(true)
+        .setMaxLength(18)
+        .setPlaceholder('FAT CLOUD'),
+    ),
+    new ActionRowBuilder().addComponents(
+      new TextInputBuilder()
+        .setCustomId('line')
+        .setLabel('Bottom line')
+        .setStyle(TextInputStyle.Short)
+        .setRequired(false)
+        .setMaxLength(32)
+        .setPlaceholder('do not share with cops'),
+    ),
+  );
+  return interaction.showModal(modal);
+}
+
 export async function handleStudioVibe(interaction) {
   const modal = new ModalBuilder().setCustomId('modal:vibe').setTitle('GIF studio — vibe');
   modal.addComponents(

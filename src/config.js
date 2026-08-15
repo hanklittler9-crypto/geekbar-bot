@@ -1,9 +1,11 @@
 import 'dotenv/config';
 
+const rawGuild = process.env.DISCORD_GUILD_ID ?? '';
+
 export const config = {
   token: process.env.DISCORD_TOKEN ?? '',
   clientId: process.env.DISCORD_CLIENT_ID ?? '',
-  guildId: process.env.DISCORD_GUILD_ID ?? '',
+  guildId: /^\d{17,20}$/.test(rawGuild) ? rawGuild : '',
 };
 
 export const GAME = {
@@ -33,6 +35,19 @@ export const GAME = {
   raidMaxPercent: 0.28,
   jackFailBurnChance: 0.12,
   prestigeMinLevel: 15,
+  slotsCooldownMs: 20_000,
+  packCost: 90,
+  packCooldownMs: 3 * 60_000,
+  chainCooldownMs: 45_000,
+  luckyCooldownMs: 25 * 60_000,
+  dropCooldownMs: 8 * 60_000,
+  flipCooldownMs: 12_000,
+  dripCooldownMs: 30 * 60_000,
+  wireCooldownMs: 6 * 60_000,
+  vanishCost: 180,
+  vanishMs: 2 * 60 * 60_000,
+  neonCost: 15,
+  stickerCost: 15,
 };
 
 export function validateConfig() {

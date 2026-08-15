@@ -84,12 +84,32 @@ db.exec(`
   );
 `);
 
+const EXTRA_USER_COLUMNS = [
+  ['last_slots', 'INTEGER DEFAULT 0'],
+  ['last_pack', 'INTEGER DEFAULT 0'],
+  ['last_chain', 'INTEGER DEFAULT 0'],
+  ['last_lucky', 'INTEGER DEFAULT 0'],
+  ['last_drop', 'INTEGER DEFAULT 0'],
+  ['last_flip', 'INTEGER DEFAULT 0'],
+  ['last_drip', 'INTEGER DEFAULT 0'],
+  ['last_wire', 'INTEGER DEFAULT 0'],
+  ['last_vanish', 'INTEGER DEFAULT 0'],
+  ['streak', 'INTEGER DEFAULT 0'],
+];
+
+const existing = new Set(db.prepare('PRAGMA table_info(users)').all().map((c) => c.name));
+for (const [name, def] of EXTRA_USER_COLUMNS) {
+  if (!existing.has(name)) db.exec(`ALTER TABLE users ADD COLUMN ${name} ${def}`);
+}
+
 const USER_COLUMNS = new Set([
   'device_name', 'tagline', 'skin', 'flavor', 'battery', 'buzz', 'pod_puffs',
   'total_hits', 'xp', 'clouds', 'stash', 'burnt', 'prestige', 'raid_shield_until',
   'xp_boost_until', 'last_hit', 'last_charge', 'last_raid', 'last_jack',
   'last_daily', 'last_chase', 'last_smokeout', 'last_roulette', 'bounty_on',
   'bounty_amount',
+  'last_slots', 'last_pack', 'last_chain', 'last_lucky', 'last_drop', 'last_flip',
+  'last_drip', 'last_wire', 'last_vanish', 'streak',
 ]);
 
 export function scopeId(guildId) {
