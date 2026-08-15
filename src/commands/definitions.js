@@ -226,6 +226,18 @@ export const cloudCommand = new SlashCommandBuilder()
       .addUserOption((opt) => opt.setName('user').setDescription('Who to inspect')),
   );
 
-export const commands = [geekbarCommand, cloudCommand];
+export const kingvampCommand = new SlashCommandBuilder()
+  .setName('kingvamp')
+  .setDescription('Send a dadaman Carti GIF')
+  .setIntegrationTypes(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)
+  .setContexts(...contexts);
+
+export const perkpopCommand = new SlashCommandBuilder()
+  .setName('perkpop')
+  .setDescription('Send a trippy California GIF')
+  .setIntegrationTypes(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)
+  .setContexts(...contexts);
+
+export const commands = [geekbarCommand, cloudCommand, kingvampCommand, perkpopCommand];
 
 export const GIF_EFFECT_CHOICES = GIF_EFFECTS.map((e) => ({ name: `${e.emoji} ${e.name}`, value: e.id }));

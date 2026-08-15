@@ -255,6 +255,10 @@ export async function handleHelp(interaction) {
           '`/geekbar studio card` `skins` `equip`',
         ].join('\n'),
       },
+      {
+        name: 'Memes',
+        value: '`/kingvamp` — dadaman Carti GIF\n`/perkpop` — trippy California GIF',
+      },
     );
   return interaction.reply({ embeds: [embed] });
 }

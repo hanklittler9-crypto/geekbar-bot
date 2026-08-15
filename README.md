@@ -69,6 +69,12 @@ This is a **fictional game**. It is not affiliated with Geek Bar or Dream Big.
 | `/geekbar studio equip` | Equip a wrap |
 | `/geekbar help` | Command list |
 
+### Memes
+| Command | Description |
+|---------|-------------|
+| `/kingvamp` | Dadaman Carti GIF |
+| `/perkpop` | Trippy California GIF |
+
 ## Local setup
 
 ### 1. Discord application
