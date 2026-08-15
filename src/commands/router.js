@@ -1,6 +1,7 @@
 import { handleAutocomplete, handleGeekbar } from './handler.js';
 import { handleCloud } from './extras.js';
-import { handleKingvamp, handlePerkpop } from './meme.js';
+import { handleMeme } from './meme.js';
+import { getMeme } from '../data/memes.js';
 
 export async function routeCommand(interaction) {
   if (interaction.commandName === 'geekbar') {
@@ -9,11 +10,8 @@ export async function routeCommand(interaction) {
   if (interaction.commandName === 'cloud') {
     return handleCloud(interaction);
   }
-  if (interaction.commandName === 'kingvamp') {
-    return handleKingvamp(interaction);
-  }
-  if (interaction.commandName === 'perkpop') {
-    return handlePerkpop(interaction);
+  if (getMeme(interaction.commandName)) {
+    return handleMeme(interaction);
   }
   return interaction.reply({ content: 'Unknown command.', ephemeral: true });
 }

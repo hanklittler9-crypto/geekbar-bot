@@ -1,23 +1,19 @@
 import { AttachmentBuilder } from 'discord.js';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
+import { getMeme } from '../data/memes.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const gifs = join(__dirname, '../../assets/gifs');
 
-function gifFile(name) {
-  return new AttachmentBuilder(join(gifs, name), { name });
-}
-
-export async function handleKingvamp(interaction) {
-  return interaction.reply({
-    content: '**KING VAMP**',
-    files: [gifFile('kingvamp.gif')],
-  });
-}
-
-export async function handlePerkpop(interaction) {
-  return interaction.reply({
-    files: [gifFile('perkpop.gif')],
-  });
+export async function handleMeme(interaction) {
+  const meme = getMeme(interaction.commandName);
+  if (!meme) {
+    return interaction.reply({ content: 'Unknown meme command.', ephemeral: true });
+  }
+  const payload = {
+    files: [new AttachmentBuilder(join(gifs, meme.file), { name: meme.file })],
+  };
+  if (meme.caption) payload.content = meme.caption;
+  return interaction.reply(payload);
 }

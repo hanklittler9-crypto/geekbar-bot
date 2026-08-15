@@ -73,6 +73,16 @@ This is a **fictional game**. It is not affiliated with Geek Bar or Dream Big.
 | Command | Description |
 |---------|-------------|
 | `/kingvamp` | Dadaman Carti GIF |
+| `/carti` | Playboi Carti GIF |
+| `/slatt` | Carti slatt GIF |
+| `/wlr` | Whole Lotta Red GIF |
+| `/teenx` | Teen X GIF |
+| `/kencarson` | Ken Carson GIF |
+| `/kendance` | Ken Carson dance GIF |
+| `/opium` | Opium GIF |
+| `/lone` | Destroy Lonely GIF |
+| `/homixide` | Homixide Gang GIF |
+| `/yvl` | YVL GIF |
 | `/perkpop` | Trippy California GIF |
 
 ## Local setup

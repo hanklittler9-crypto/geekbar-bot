@@ -257,7 +257,11 @@ export async function handleHelp(interaction) {
       },
       {
         name: 'Memes',
-        value: '`/kingvamp` — dadaman Carti GIF\n`/perkpop` — trippy California GIF',
+        value: [
+          '`/kingvamp` `/carti` `/slatt` `/wlr` `/teenx`',
+          '`/kencarson` `/kendance` `/opium` `/lone` `/homixide` `/yvl`',
+          '`/perkpop`',
+        ].join('\n'),
       },
     );
   return interaction.reply({ embeds: [embed] });
