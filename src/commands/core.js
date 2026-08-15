@@ -13,6 +13,7 @@ import {
   replyGif,
   replyPng,
   xpGain,
+  applyBuzz,
 } from '../utils/game.js';
 
 export async function handleHit(interaction) {
@@ -26,17 +27,38 @@ export async function handleHit(interaction) {
   await interaction.deferReply();
   const xp = xpGain(user, 12 + Math.floor(Math.random() * 8));
   const clouds = 4 + Math.floor(Math.random() * 9) + user.prestige;
+  const buzzed = applyBuzz(user, 3.5);
   const next = updateUser(interaction.user.id, guildIdOf(interaction), {
     battery: Math.max(0, user.battery - GAME.hitBatteryCost),
     pod_puffs: user.pod_puffs - GAME.hitPuffCost,
     total_hits: user.total_hits + 1,
-    xp: user.xp + xp,
-    clouds: user.clouds + clouds,
-    buzz: Math.min(100, user.buzz + 3.5),
+    xp: user.xp + xp + (buzzed.maxed ? 40 : 0),
+    clouds: user.clouds + clouds + buzzed.bonusClouds,
+    buzz: buzzed.buzz,
+    burnt: buzzed.burnt ? 1 : user.burnt,
+    xp_boost_until: buzzed.maxed ? buzzed.xpBoostUntil : user.xp_boost_until,
     last_hit: now(),
   });
 
   const flavor = flavorOf(next);
+  if (buzzed.maxed) {
+    const gif = await renderSceneGif('buzzmax', next, {
+      subtitle: 'BLACKOUT DUMP',
+      line: `+${buzzed.bonusClouds} clouds`,
+    });
+    const extra = buzzed.burnt ? '\nCoil **burnt** on the dump. Repair it.' : '\nXP doubler on for **20 minutes**. Buzz reset.';
+    const embed = new EmbedBuilder()
+      .setColor('#FFD700')
+      .setTitle('💥 MAX BUZZ')
+      .setDescription(`**${next.device_name}** hit 100 buzz and dumped.\nBonus **+${buzzed.bonusClouds} clouds**.${extra}`)
+      .addFields(
+        { name: 'Hit clouds', value: `+${clouds}`, inline: true },
+        { name: 'Dump bonus', value: `+${buzzed.bonusClouds}`, inline: true },
+        { name: 'Buzz', value: '0 (reset)', inline: true },
+      );
+    return replyGif(interaction, embed, gif, 'maxbuzz.gif');
+  }
+
   const gif = await renderSceneGif('hit', next);
   const embed = new EmbedBuilder()
     .setColor(flavor.color)
@@ -45,7 +67,7 @@ export async function handleHit(interaction) {
     .addFields(
       { name: 'Clouds', value: `+${clouds}`, inline: true },
       { name: 'XP', value: `+${xp}`, inline: true },
-      { name: 'Battery', value: `${Math.round(next.battery)}%`, inline: true },
+      { name: 'Buzz', value: `${Math.round(next.buzz)}/100`, inline: true },
     );
   return replyGif(interaction, embed, gif, 'hit.gif');
 }
@@ -207,6 +229,7 @@ export async function handleHelp(interaction) {
         name: 'Device',
         value: [
           '`/geekbar hit` — take a hit, earn clouds + XP, get a vapor GIF',
+          'Hit **100 buzz** → MAX BUZZ dump (bonus clouds, XP doubler, buzz resets)',
           '`/geekbar charge` — recharge battery',
           '`/geekbar customize` — modal to rename + tagline',
           '`/geekbar flavor` — swap pods',

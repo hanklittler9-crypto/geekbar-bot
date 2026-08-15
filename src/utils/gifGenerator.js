@@ -310,6 +310,18 @@ export async function renderSceneGif(scene, user, extras = {}) {
       drawVapor(ctx, flavor.color, t, 1);
       drawDevice(ctx, user, flavor, skin, { wrapImage, glow: 1.2, scale: 1.05, tilt: Math.sin(t * 6) * 0.05 });
       drawCaption(ctx, ['FLEX', user.device_name, flavor.name], flavor.color);
+    } else if (scene === 'buzzmax') {
+      ctx.fillStyle = rgb('#FF2D55', 0.16 + t * 0.18);
+      ctx.fillRect(0, 0, W, H);
+      drawVapor(ctx, '#FF2D55', t, 1.8, 180, 50);
+      drawVapor(ctx, '#FFD700', (t + 0.4) % 1, 1.4, 220, 80);
+      drawDevice(ctx, user, flavor, skin, {
+        wrapImage,
+        glow: 1.6,
+        scale: 0.95 + t * 0.18,
+        tilt: Math.sin(t * 16) * 0.18,
+      });
+      drawCaption(ctx, ['MAX BUZZ', extras.subtitle || 'BLACKOUT DUMP', extras.line || ''], '#FFD700');
     } else if (scene === 'slots') {
       const reels = extras.reels || ['💨', '💨', '💎'];
       drawCaption(ctx, [extras.success ? 'JACKPOT' : 'SLOTS', extras.subtitle || '', extras.line || ''], extras.success ? '#FFD700' : flavor.color);

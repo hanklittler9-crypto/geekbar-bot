@@ -27,6 +27,22 @@ export async function loadProfile(interaction, userId = interaction.user.id) {
   return getUser(userId, guildIdOf(interaction));
 }
 
+export function applyBuzz(user, amount) {
+  const before = Number(user.buzz) || 0;
+  const buzz = Math.min(100, before + amount);
+  const maxed = before < 100 && buzz >= 100;
+  if (!maxed) {
+    return { buzz, maxed: false, bonusClouds: 0, burnt: false, xpBoostUntil: 0 };
+  }
+  return {
+    buzz: 0,
+    maxed: true,
+    bonusClouds: 120 + Math.floor(Math.random() * 110) + (user.prestige || 0) * 15,
+    burnt: Math.random() < 0.12,
+    xpBoostUntil: now() + 20 * 60_000,
+  };
+}
+
 export function xpGain(user, base) {
   const boost = user.xp_boost_until > now() ? 2 : 1;
   const prestige = 1 + user.prestige * 0.08;

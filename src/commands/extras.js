@@ -15,6 +15,7 @@ import {
   replyGif,
   replyPng,
   xpGain,
+  applyBuzz,
 } from '../utils/game.js';
 
 export async function handleCloud(interaction) {
@@ -159,27 +160,42 @@ export async function handleChain(interaction) {
   await interaction.deferReply();
   const xp = xpGain(user, 40);
   const clouds = 18 + randInt(8, 24) + user.prestige * 3;
-  const burnt = user.battery < 35 && Math.random() < 0.18;
+  const buzzed = applyBuzz(user, 12);
+  const burnt = (user.battery < 35 && Math.random() < 0.18) || buzzed.burnt;
   const gid = guildIdOf(interaction);
   const next = updateUser(interaction.user.id, gid, {
     battery: Math.max(0, user.battery - GAME.hitBatteryCost * 3),
     pod_puffs: user.pod_puffs - 3,
     total_hits: user.total_hits + 3,
-    xp: user.xp + xp,
-    clouds: user.clouds + clouds,
-    buzz: Math.min(100, user.buzz + 12),
+    xp: user.xp + xp + (buzzed.maxed ? 40 : 0),
+    clouds: user.clouds + clouds + buzzed.bonusClouds,
+    buzz: buzzed.buzz,
     burnt: burnt ? 1 : user.burnt,
+    xp_boost_until: buzzed.maxed ? buzzed.xpBoostUntil : user.xp_boost_until,
     last_chain: now(),
     last_hit: now(),
     streak: (user.streak || 0) + 3,
   });
+  if (buzzed.maxed) {
+    const gif = await renderSceneGif('buzzmax', next, {
+      subtitle: 'CHAIN DUMP',
+      line: `+${clouds + buzzed.bonusClouds} clouds`,
+    });
+    const extra = burnt ? ' Coil **burnt**.' : ' XP doubler 20m.';
+    return replyGif(
+      interaction,
+      okEmbed('💥 MAX BUZZ', `Chain hit 100 buzz and dumped. Bonus **+${buzzed.bonusClouds} clouds**.${extra}`, '#FFD700'),
+      gif,
+      'maxbuzz.gif',
+    );
+  }
   const gif = await renderSceneGif('chain', next, {
     subtitle: burnt ? 'coil toast' : 'x3 combo',
     line: `+${clouds}c  +${xp}xp`,
   });
   const text = burnt
     ? `Triple rip, then the coil **burnt**. Still banked **${clouds}** clouds. Repair it.`
-    : `Three hits in one pull. **+${clouds} clouds**, **+${xp} XP**.`;
+    : `Three hits in one pull. **+${clouds} clouds**, **+${xp} XP**. Buzz **${Math.round(next.buzz)}/100**.`;
   return replyGif(interaction, okEmbed('⛓️ Chain', text, flavorOf(next).color), gif, 'chain.gif');
 }
 
