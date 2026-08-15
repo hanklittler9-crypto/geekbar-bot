@@ -1,0 +1,16 @@
+import { REST, Routes } from 'discord.js';
+import { config, validateConfig } from './config.js';
+import { commands } from './commands/definitions.js';
+
+validateConfig();
+
+const rest = new REST({ version: '10' }).setToken(config.token);
+const body = commands.map((c) => c.toJSON());
+
+if (config.guildId) {
+  await rest.put(Routes.applicationGuildCommands(config.clientId, config.guildId), { body });
+  console.log(`Registered ${body.length} command(s) to guild ${config.guildId}`);
+} else {
+  await rest.put(Routes.applicationCommands(config.clientId), { body });
+  console.log(`Registered ${body.length} global command(s)`);
+}

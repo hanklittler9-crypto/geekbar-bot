@@ -1,0 +1,22 @@
+{
+  "name": "geekbar-bot",
+  "version": "1.0.0",
+  "description": "Geek Bar themed Discord heist bot with on-the-fly GIF and image generation",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js",
+    "deploy-commands": "node src/deploy-commands.js",
+    "invite": "node src/print-invite.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "@napi-rs/canvas": "^0.1.80",
+    "better-sqlite3": "^11.10.0",
+    "discord.js": "^14.21.0",
+    "dotenv": "^16.6.1",
+    "gifenc": "^1.0.3"
+  }
+}
