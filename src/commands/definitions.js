@@ -225,6 +225,21 @@ export const cloudCommand = new SlashCommandBuilder()
       .setName('inspect')
       .setDescription('Inspect a setup and get a cloud rating card')
       .addUserOption((opt) => opt.setName('user').setDescription('Who to inspect')),
+  )
+  .addSubcommand((sub) =>
+    sub
+      .setName('crash')
+      .setDescription('All-in crash — multiply your bet or go to zero')
+      .addIntegerOption((opt) =>
+        opt.setName('bet').setDescription('Clouds to bet (default 40)').setMinValue(10).setMaxValue(400),
+      ),
+  )
+  .addSubcommand((sub) => sub.setName('quote').setDescription('Random opium / cloud quote'))
+  .addSubcommand((sub) =>
+    sub
+      .setName('roast')
+      .setDescription("Roast someone's Geek Bar")
+      .addUserOption((opt) => opt.setName('user').setDescription('Who to roast')),
   );
 
 export const memeCommands = MEME_GIFS.map((meme) =>

@@ -36,6 +36,12 @@ export async function handleCloud(interaction) {
       return handleDrip(interaction);
     case 'inspect':
       return handleInspect(interaction);
+    case 'crash':
+      return handleCrash(interaction);
+    case 'quote':
+      return handleQuote(interaction);
+    case 'roast':
+      return handleRoast(interaction);
     default:
       return interaction.reply({ content: 'Unknown cloud command.', ephemeral: true });
   }
@@ -295,4 +301,79 @@ export async function handleInspect(interaction) {
     .setDescription(lines.join('\n'))
     .addFields(statsFields(user).slice(0, 6));
   return replyPng(interaction, embed, png, 'inspect.png');
+}
+
+const QUOTES = [
+  'slatt 🩸',
+  'jumpout the house',
+  'teen x',
+  'yvl forever',
+  'opium till I die',
+  'whole lotta red',
+  'I am music',
+  'slow down for me',
+  'twizzy rich',
+  'if looks could kill',
+  'a great chaos',
+  'destroyed lonely',
+  'homixide in this bitch',
+  'king vamp hours',
+  'fat cloud, no talking',
+];
+
+export async function handleCrash(interaction) {
+  const bet = interaction.options.getInteger('bet') ?? 40;
+  const user = await loadProfile(interaction);
+  if (await denyCooldown(interaction, user.last_crash, GAME.crashCooldownMs, 'Crash')) return;
+  if (user.clouds < bet) {
+    return interaction.reply({ embeds: [errorEmbed(`Need **${bet}** clouds.`)], ephemeral: true });
+  }
+  await interaction.deferReply();
+  const roll = Math.random();
+  let mult = 0;
+  if (roll > 0.55) mult = 0;
+  else if (roll > 0.22) mult = 1.6;
+  else if (roll > 0.08) mult = 2.4;
+  else if (roll > 0.02) mult = 4;
+  else mult = 8;
+  const payout = Math.floor(bet * mult);
+  const next = updateUser(interaction.user.id, guildIdOf(interaction), {
+    clouds: user.clouds - bet + payout,
+    last_crash: now(),
+  });
+  const gif = await renderSceneGif(mult ? 'lucky' : 'drop', next, {
+    success: mult > 0,
+    subtitle: mult ? `${mult}x` : 'CRASHED',
+    line: mult ? `+${payout}` : `-${bet}`,
+  });
+  return replyGif(
+    interaction,
+    okEmbed(mult ? `🚀 ${mult}x` : '💥 Crashed', `Bet **${bet}**. ${mult ? `Cashed **${payout}**.` : 'Went to zero.'}`, mult ? '#FFD700' : '#FF5C5C'),
+    gif,
+    'crash.gif',
+  );
+}
+
+export async function handleQuote(interaction) {
+  return interaction.reply({ embeds: [okEmbed('🩸', pick(QUOTES), '#8B1E3F')] });
+}
+
+export async function handleRoast(interaction) {
+  const target = interaction.options.getUser('user') ?? interaction.user;
+  await interaction.deferReply();
+  const user = await loadProfile(interaction, target.id);
+  const flavor = flavorOf(user);
+  const lines = [
+    user.burnt ? 'coil looks like it fought a blowtorch and lost.' : 'setup is mid. charge it.',
+    user.clouds < 50 ? 'broke in the cloud economy.' : 'flexing clouds nobody asked about.',
+    user.pod_puffs < 40 ? 'pod is dust. go to the shop.' : `${flavor.name} is doing the most.`,
+    levelFromXp(user.xp) < 5 ? 'still on starter mint. embarrassing.' : `level ${levelFromXp(user.xp)} and still hitting like a tourist.`,
+  ];
+  const gif = await renderSceneGif('flex', user, { title: 'ROAST', subtitle: user.device_name, line: 'exposed' });
+  return replyGif(
+    interaction,
+    okEmbed(`🔥 ${user.device_name}`, lines.join('\n'), '#FF4500'),
+    gif,
+    'roast.gif',
+  );
 }

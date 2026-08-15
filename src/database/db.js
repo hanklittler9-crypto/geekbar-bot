@@ -94,6 +94,7 @@ const EXTRA_USER_COLUMNS = [
   ['last_drip', 'INTEGER DEFAULT 0'],
   ['last_wire', 'INTEGER DEFAULT 0'],
   ['last_vanish', 'INTEGER DEFAULT 0'],
+  ['last_crash', 'INTEGER DEFAULT 0'],
   ['streak', 'INTEGER DEFAULT 0'],
 ];
 
@@ -109,7 +110,7 @@ const USER_COLUMNS = new Set([
   'last_daily', 'last_chase', 'last_smokeout', 'last_roulette', 'bounty_on',
   'bounty_amount',
   'last_slots', 'last_pack', 'last_chain', 'last_lucky', 'last_drop', 'last_flip',
-  'last_drip', 'last_wire', 'last_vanish', 'streak',
+  'last_drip', 'last_wire', 'last_vanish', 'last_crash', 'streak',
 ]);
 
 export function scopeId(guildId) {

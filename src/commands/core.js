@@ -239,7 +239,7 @@ export async function handleHelp(interaction) {
         name: 'Cloud minigames',
         value: [
           '`/cloud slots` `flip` `pack` `chain`',
-          '`/cloud lucky` `drop` `drip` `inspect`',
+          '`/cloud lucky` `drop` `drip` `inspect` `crash` `quote` `roast`',
         ].join('\n'),
       },
       {
@@ -260,7 +260,8 @@ export async function handleHelp(interaction) {
         value: [
           '`/kingvamp` `/carti` `/slatt` `/wlr` `/teenx`',
           '`/kencarson` `/kendance` `/opium` `/lone` `/homixide` `/yvl`',
-          '`/perkpop`',
+          '`/yeat` `/twizzy` `/summrs` `/kankan` `/izaya` `/vamp` `/music`',
+          '`/slowdown` `/blonde` `/walk` `/catken` `/meechie` `/perkpop`',
         ].join('\n'),
       },
     );

@@ -1,4 +1,4 @@
-import { AttachmentBuilder } from 'discord.js';
+import { AttachmentBuilder, EmbedBuilder } from 'discord.js';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 import { getMeme } from '../data/memes.js';
@@ -11,6 +11,14 @@ export async function handleMeme(interaction) {
   if (!meme) {
     return interaction.reply({ content: 'Unknown meme command.', ephemeral: true });
   }
+
+  if (meme.url) {
+    const embed = new EmbedBuilder().setColor('#000000').setImage(meme.url);
+    const payload = { embeds: [embed] };
+    if (meme.caption) payload.content = meme.caption;
+    return interaction.reply(payload);
+  }
+
   const payload = {
     files: [new AttachmentBuilder(join(gifs, meme.file), { name: meme.file })],
   };

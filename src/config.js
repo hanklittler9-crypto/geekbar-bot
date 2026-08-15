@@ -48,6 +48,7 @@ export const GAME = {
   vanishMs: 2 * 60 * 60_000,
   neonCost: 15,
   stickerCost: 15,
+  crashCooldownMs: 15_000,
 };
 
 export function validateConfig() {
