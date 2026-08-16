@@ -21,6 +21,10 @@ import {
   randInt,
   replyGif,
   shielded,
+  bumpQuest,
+  currentEvent,
+  eventMult,
+  questNote,
 } from '../utils/game.js';
 
 export async function handleRaid(interaction) {
@@ -53,13 +57,19 @@ export async function handleRaid(interaction) {
       subtitle: 'cameras caught you',
       line: `-${fine} clouds`,
     });
-    return replyGif(interaction, errorEmbed(`Busted raiding **${targetUser.username}**. Lost **${fine}** clouds.`), gif, 'raid.gif');
+    const quest = bumpQuest(interaction.user.id, gid, 'raid');
+    return replyGif(interaction, errorEmbed(`Busted raiding **${targetUser.username}**. Lost **${fine}** clouds.${questNote(quest)}`), gif, 'raid.gif');
   }
 
-  const stolen = Math.max(10, Math.floor(victim.clouds * (GAME.raidMinPercent + Math.random() * (GAME.raidMaxPercent - GAME.raidMinPercent))));
+  const stolen = Math.min(
+    victim.clouds,
+    Math.max(10, Math.floor(victim.clouds * (GAME.raidMinPercent + Math.random() * (GAME.raidMaxPercent - GAME.raidMinPercent)) * eventMult('raid'))),
+  );
   addClouds(targetUser.id, gid, -stolen);
   const next = addClouds(interaction.user.id, gid, stolen);
   logRaid(gid, raider.user_id, victim.user_id, stolen, true, 'raid');
+  const quest = bumpQuest(interaction.user.id, gid, 'raid');
+  const ev = currentEvent();
   const gif = await renderSceneGif('raid', next, {
     success: true,
     subtitle: `lifted ${stolen} clouds`,
@@ -67,7 +77,11 @@ export async function handleRaid(interaction) {
   });
   return replyGif(
     interaction,
-    okEmbed('🕵️ Raid hit', `You heisted **${stolen} clouds** from **${targetUser.username}**. Stash stays safe.`, flavorOf(next).color),
+    okEmbed(
+      '🕵️ Raid hit',
+      `You heisted **${stolen} clouds** from **${targetUser.username}**. Stash stays safe.${eventMult('raid') > 1 ? `\n🌍 ${ev.name} juiced the take.` : ''}${questNote(quest)}`,
+      flavorOf(next).color,
+    ),
     gif,
     'raid.gif',
   );
@@ -479,6 +493,86 @@ export async function handleVanish(interaction) {
     gif,
     'vanish.gif',
   );
+}
+
+const lockpickGames = new Map();
+
+export async function handleLockpick(interaction) {
+  const user = await loadProfile(interaction);
+  if (await denyCooldown(interaction, user.last_lockpick, GAME.lockpickCooldownMs, 'Lockpick')) return;
+  updateUser(interaction.user.id, guildIdOf(interaction), { last_lockpick: now() });
+  const secret = randInt(0, 3);
+  lockpickGames.set(interaction.user.id, { secret, attempts: 2, started: Date.now() });
+  const row = new ActionRowBuilder().addComponents(
+    ['PIN 1', 'PIN 2', 'PIN 3', 'PIN 4'].map((label, i) =>
+      new ButtonBuilder()
+        .setCustomId(`lockpick:${interaction.user.id}:${i}`)
+        .setLabel(label)
+        .setStyle(ButtonStyle.Secondary),
+    ),
+  );
+  return interaction.reply({
+    embeds: [okEmbed('🔓 Lockpick', 'Feel the pins. **Two** attempts. One pin opens the lock.')],
+    components: [row],
+  });
+}
+
+export async function resolveLockpick(interaction, index) {
+  const game = lockpickGames.get(interaction.user.id);
+  if (!game) {
+    return interaction.reply({ embeds: [errorEmbed('That lock expired.')], ephemeral: true });
+  }
+  if (Date.now() - game.started > 120_000) {
+    lockpickGames.delete(interaction.user.id);
+    return interaction.reply({ embeds: [errorEmbed('The lock seized. Too slow.')], ephemeral: true });
+  }
+
+  await interaction.deferUpdate();
+  if (index === game.secret) {
+    lockpickGames.delete(interaction.user.id);
+    const disabled = new ActionRowBuilder().addComponents(
+      interaction.message.components[0].components.map((c) => ButtonBuilder.from(c).setDisabled(true)),
+    );
+    await interaction.editReply({ components: [disabled] });
+    const payout = randInt(90, 180);
+    const next = addClouds(interaction.user.id, guildIdOf(interaction), payout);
+    const quest = bumpQuest(interaction.user.id, guildIdOf(interaction), 'raid');
+    const gif = await renderSceneGif('lockpick', next, {
+      success: true,
+      pin: index,
+      subtitle: 'pins dropped',
+      line: `+${payout} clouds`,
+    });
+    const embed = okEmbed('Unlocked', `The cylinder turned. You walked with **${payout} clouds**.${questNote(quest)}`, flavorOf(next).color);
+    embed.setImage('attachment://lockpick.gif');
+    return interaction.followUp({ embeds: [embed], files: [{ attachment: gif, name: 'lockpick.gif' }] });
+  }
+
+  game.attempts -= 1;
+  if (game.attempts > 0) {
+    return interaction.followUp({
+      embeds: [okEmbed('Still stuck', 'That pin did not give. **One** attempt left.')],
+      ephemeral: true,
+    });
+  }
+
+  lockpickGames.delete(interaction.user.id);
+  const disabled = new ActionRowBuilder().addComponents(
+    interaction.message.components[0].components.map((c) => ButtonBuilder.from(c).setDisabled(true)),
+  );
+  await interaction.editReply({ components: [disabled] });
+  const user = await loadProfile(interaction);
+  const fine = Math.min(user.clouds, randInt(12, 35));
+  const next = addClouds(interaction.user.id, guildIdOf(interaction), -fine);
+  const gif = await renderSceneGif('lockpick', next, {
+    success: false,
+    pin: game.secret,
+    subtitle: 'snapped pick',
+    line: `-${fine} clouds`,
+  });
+  const embed = errorEmbed(`Pick snapped. Alarm chirped. Lost **${fine}** clouds.`);
+  embed.setImage('attachment://lockpick.gif');
+  return interaction.followUp({ embeds: [embed], files: [{ attachment: gif, name: 'lockpick.gif' }] });
 }
 
 function sleep(ms) {

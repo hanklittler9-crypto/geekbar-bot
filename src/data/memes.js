@@ -31,6 +31,12 @@ export const MEME_GIFS = [
   { name: 'selftitled', url: 'https://media.tenor.com/SOqUb3uDlYcAAAAM/playboi-carti-self-titled.gif', caption: '**SELF TITLED**', description: 'Self Titled Carti GIF' },
   { name: 'kenchain', url: 'https://media.tenor.com/2oIjDRthxfgAAAAM/ken-carson-ken-carson-chain.gif', caption: '**CHAIN**', description: 'Ken Carson chain GIF' },
   { name: 'lonesleep', url: 'https://media.tenor.com/B235GeQHIEEAAAAM/destroy-lonely-sleep.gif', caption: '**ASLEEP**', description: 'Destroy Lonely sleep GIF' },
+  { name: 'autumn', url: 'https://media.tenor.com/2-mWgRHr3ycAAAAM/yeat.gif', caption: '**AUTUMN**', description: 'Autumn / rage GIF' },
+  { name: 'mosh', url: 'https://media.tenor.com/hw1_CtA3yEkAAAAM/jumpoutgang.gif', caption: '**MOSH**', description: 'Mosh / jumpout GIF' },
+  { name: 'kenlive', url: 'https://media.tenor.com/tCGJiIlTb00AAAAM/ken-carson-agc.gif', caption: '**KEN LIVE**', description: 'Ken Carson live GIF' },
+  { name: 'cartidance', url: 'https://media.tenor.com/vEMhQWePszsAAAAM/playboi-carti-carti.gif', caption: '**DANCE**', description: 'Carti dance GIF' },
+  { name: 'opiumfit', url: 'https://media.tenor.com/A0UGRivk_EQAAAAM/whole-lotta-red-vamp.gif', caption: '**FIT CHECK**', description: 'Opium fit GIF' },
+  { name: 'hba', url: 'https://media.tenor.com/U1C2u1E_QacAAAAM/destroy-lonely-walking.gif', caption: '**HBA**', description: 'Hood By Air walk GIF' },
 ];
 
 export function getMeme(name) {

@@ -1,6 +1,6 @@
-import { handleHit, handleCharge, handleCustomize, handleFlavor, handleStats, handleProfile, handleDaily, handleHelp, flavorAutocomplete } from './core.js';
+import { handleHit, handleCharge, handleCustomize, handleFlavor, handleStats, handleProfile, handleDaily, handleHelp, handleQuest, handleEvent, handleNight, handlePulse, flavorAutocomplete } from './core.js';
 import { handleShop, handleInventory, handleStash, handleGift, handleLeaderboard, handleRepair, handlePrestige, handleFlex, shopAutocomplete } from './economy.js';
-import { handleRaid, handleJack, handleChase, handleSmokeout, handleBounty, handleBountyBoard, handleRoulette, handleSpot, handleWire, handleVanish } from './heist.js';
+import { handleRaid, handleJack, handleChase, handleSmokeout, handleBounty, handleBountyBoard, handleRoulette, handleSpot, handleWire, handleVanish, handleLockpick } from './heist.js';
 import {
   handleStudioVibe,
   handleStudioRender,
@@ -42,6 +42,8 @@ export async function handleGeekbar(interaction) {
         return handleWire(interaction);
       case 'vanish':
         return handleVanish(interaction);
+      case 'lockpick':
+        return handleLockpick(interaction);
       default:
         return interaction.reply({ content: 'Unknown heist command.', ephemeral: true });
     }
@@ -107,6 +109,14 @@ export async function handleGeekbar(interaction) {
       return handleGift(interaction);
     case 'help':
       return handleHelp(interaction);
+    case 'quest':
+      return handleQuest(interaction);
+    case 'event':
+      return handleEvent(interaction);
+    case 'night':
+      return handleNight(interaction);
+    case 'pulse':
+      return handlePulse(interaction);
     default:
       return interaction.reply({ content: 'Unknown command.', ephemeral: true });
   }

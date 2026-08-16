@@ -96,6 +96,15 @@ const EXTRA_USER_COLUMNS = [
   ['last_vanish', 'INTEGER DEFAULT 0'],
   ['last_crash', 'INTEGER DEFAULT 0'],
   ['streak', 'INTEGER DEFAULT 0'],
+  ['quest_type', "TEXT DEFAULT ''"],
+  ['quest_progress', 'INTEGER DEFAULT 0'],
+  ['quest_done', 'INTEGER DEFAULT 0'],
+  ['last_quest_day', "TEXT DEFAULT ''"],
+  ['last_night', 'INTEGER DEFAULT 0'],
+  ['last_dice', 'INTEGER DEFAULT 0'],
+  ['last_wheel', 'INTEGER DEFAULT 0'],
+  ['last_scratch', 'INTEGER DEFAULT 0'],
+  ['last_lockpick', 'INTEGER DEFAULT 0'],
 ];
 
 const existing = new Set(db.prepare('PRAGMA table_info(users)').all().map((c) => c.name));
@@ -111,6 +120,8 @@ const USER_COLUMNS = new Set([
   'bounty_amount',
   'last_slots', 'last_pack', 'last_chain', 'last_lucky', 'last_drop', 'last_flip',
   'last_drip', 'last_wire', 'last_vanish', 'last_crash', 'streak',
+  'quest_type', 'quest_progress', 'quest_done', 'last_quest_day',
+  'last_night', 'last_dice', 'last_wheel', 'last_scratch', 'last_lockpick',
 ]);
 
 export function scopeId(guildId) {
