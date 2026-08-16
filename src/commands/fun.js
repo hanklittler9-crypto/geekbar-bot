@@ -82,6 +82,14 @@ export async function handleFun(interaction) {
       return handleRate(interaction);
     case 'ship':
       return handleShip(interaction);
+    case 'pick':
+      return handlePick(interaction);
+    case 'howcool':
+      return handleMeter(interaction, 'How cool', ['npc', 'alright', 'drip', 'menace', 'UNTOUCHABLE']);
+    case 'reverse':
+      return handleReverse(interaction);
+    case 'clap':
+      return handleClap(interaction);
     default:
       return interaction.reply({ content: 'Unknown fun command.', ephemeral: true });
   }
@@ -130,4 +138,29 @@ function handleShip(interaction) {
   return interaction.reply({
     embeds: [okEmbed('Ship', `${a} + ${b}\n**${score}%** · ship name **${pick(names)}**`)],
   });
+}
+
+function handlePick(interaction) {
+  const raw = interaction.options.getString('options', true);
+  const options = raw
+    .split(',')
+    .map((part) => part.trim())
+    .filter(Boolean);
+  if (options.length < 2) {
+    return interaction.reply({ embeds: [errorEmbed('Give at least two options, separated by commas.')], ephemeral: true });
+  }
+  return interaction.reply({
+    embeds: [okEmbed('Pick', `Out of **${options.join(' / ')}**\n\n→ **${pick(options)}**`)],
+  });
+}
+
+function handleReverse(interaction) {
+  const text = interaction.options.getString('text', true);
+  return interaction.reply({ embeds: [okEmbed('Reverse', [...text].reverse().join(''))] });
+}
+
+function handleClap(interaction) {
+  const text = interaction.options.getString('text', true);
+  const clapped = text.trim().split(/\s+/).join(' 👏 ');
+  return interaction.reply({ embeds: [okEmbed('Clap', `👏 ${clapped} 👏`)] });
 }

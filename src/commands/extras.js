@@ -16,6 +16,11 @@ import {
   replyPng,
   xpGain,
   applyBuzz,
+  bumpQuest,
+  coilsSafe,
+  currentEvent,
+  eventMult,
+  questNote,
 } from '../utils/game.js';
 
 export async function handleCloud(interaction) {
@@ -45,6 +50,12 @@ export async function handleCloud(interaction) {
       return handleRoast(interaction);
     case 'highlow':
       return handleHighlow(interaction);
+    case 'dice':
+      return handleDice(interaction);
+    case 'wheel':
+      return handleWheel(interaction);
+    case 'scratch':
+      return handleScratch(interaction);
     default:
       return interaction.reply({ content: 'Unknown cloud command.', ephemeral: true });
   }
@@ -77,6 +88,7 @@ export async function handleSlots(interaction) {
     clouds: user.clouds - bet + win,
     last_slots: now(),
   });
+  const quest = bumpQuest(interaction.user.id, gid, 'slots');
   const gif = await renderSceneGif('slots', next, {
     reels,
     success: win > bet,
@@ -85,7 +97,7 @@ export async function handleSlots(interaction) {
   });
   return replyGif(
     interaction,
-    okEmbed(`🎰 ${title}`, `Bet **${bet}**. Landed ${reels.join(' ')}\n${win ? `Paid **${win}** clouds.` : 'Dead spin.'}`, win ? '#FFD700' : flavorOf(next).color),
+    okEmbed(`🎰 ${title}`, `Bet **${bet}**. Landed ${reels.join(' ')}\n${win ? `Paid **${win}** clouds.` : 'Dead spin.'}${questNote(quest)}`, win ? '#FFD700' : flavorOf(next).color),
     gif,
     'slots.gif',
   );
@@ -158,10 +170,11 @@ export async function handleChain(interaction) {
     return interaction.reply({ embeds: [errorEmbed('Need enough battery and puffs for a 3-hit chain.')], ephemeral: true });
   }
   await interaction.deferReply();
+  const ev = currentEvent();
   const xp = xpGain(user, 40);
-  const clouds = 18 + randInt(8, 24) + user.prestige * 3;
+  const clouds = Math.floor((18 + randInt(8, 24) + user.prestige * 3) * eventMult('chain'));
   const buzzed = applyBuzz(user, 12);
-  const burnt = (user.battery < 35 && Math.random() < 0.18) || buzzed.burnt;
+  const burnt = coilsSafe() ? false : ((user.battery < 35 && Math.random() < 0.18) || buzzed.burnt);
   const gid = guildIdOf(interaction);
   const next = updateUser(interaction.user.id, gid, {
     battery: Math.max(0, user.battery - GAME.hitBatteryCost * 3),
@@ -176,6 +189,8 @@ export async function handleChain(interaction) {
     last_hit: now(),
     streak: (user.streak || 0) + 3,
   });
+  const quest = bumpQuest(interaction.user.id, gid, 'chain');
+  const eventTag = ev.id === 'vamp' ? `\n🌍 ${ev.name} is juicing chains.` : '';
   if (buzzed.maxed) {
     const gif = await renderSceneGif('buzzmax', next, {
       subtitle: 'CHAIN DUMP',
@@ -184,7 +199,7 @@ export async function handleChain(interaction) {
     const extra = burnt ? ' Coil **burnt**.' : ' XP doubler 20m.';
     return replyGif(
       interaction,
-      okEmbed('💥 MAX BUZZ', `Chain hit 100 buzz and dumped. Bonus **+${buzzed.bonusClouds} clouds**.${extra}`, '#FFD700'),
+      okEmbed('💥 MAX BUZZ', `Chain hit 100 buzz and dumped. Bonus **+${buzzed.bonusClouds} clouds**.${extra}${eventTag}${questNote(quest)}`, '#FFD700'),
       gif,
       'maxbuzz.gif',
     );
@@ -196,7 +211,7 @@ export async function handleChain(interaction) {
   const text = burnt
     ? `Triple rip, then the coil **burnt**. Still banked **${clouds}** clouds. Repair it.`
     : `Three hits in one pull. **+${clouds} clouds**, **+${xp} XP**. Buzz **${Math.round(next.buzz)}/100**.`;
-  return replyGif(interaction, okEmbed('⛓️ Chain', text, flavorOf(next).color), gif, 'chain.gif');
+  return replyGif(interaction, okEmbed('⛓️ Chain', `${text}${eventTag}${questNote(quest)}`, flavorOf(next).color), gif, 'chain.gif');
 }
 
 export async function handleLucky(interaction) {
@@ -424,4 +439,125 @@ export async function handleHighlow(interaction) {
     ? `**${first}** then **${second}**. Push. Bet returned.`
     : `**${first}** then **${second}**. You called **${call}**. ${win ? `Won **${bet}**.` : `Lost **${bet}**.`}`;
   return replyGif(interaction, okEmbed(win ? '📈 Hit' : tie ? '😐 Push' : '📉 Miss', text, win ? '#00F5A0' : '#FF5C5C'), gif, 'highlow.gif');
+}
+
+export async function handleDice(interaction) {
+  const call = interaction.options.getString('call', true);
+  const bet = interaction.options.getInteger('bet') ?? 20;
+  const user = await loadProfile(interaction);
+  if (await denyCooldown(interaction, user.last_dice, GAME.diceCooldownMs, 'Dice')) return;
+  if (user.clouds < bet) {
+    return interaction.reply({ embeds: [errorEmbed(`Need **${bet}** clouds.`)], ephemeral: true });
+  }
+  await interaction.deferReply();
+  const face = randInt(1, 6);
+  const high = face >= 4;
+  const win = (call === 'high' && high) || (call === 'low' && !high);
+  const next = updateUser(interaction.user.id, guildIdOf(interaction), {
+    clouds: user.clouds + (win ? bet : -bet),
+    last_dice: now(),
+  });
+  const gif = await renderSceneGif('dice', next, {
+    face,
+    success: win,
+    subtitle: `rolled ${face}`,
+    line: win ? `+${bet}` : `-${bet}`,
+  });
+  return replyGif(
+    interaction,
+    okEmbed(win ? '🎲 Hit' : '🎲 Miss', `You called **${call}**. Die landed **${face}**. ${win ? `Won **${bet}**.` : `Lost **${bet}**.`}`, win ? '#00F5A0' : '#FF5C5C'),
+    gif,
+    'dice.gif',
+  );
+}
+
+export async function handleWheel(interaction) {
+  const bet = interaction.options.getInteger('bet') ?? 30;
+  const user = await loadProfile(interaction);
+  if (await denyCooldown(interaction, user.last_wheel, GAME.wheelCooldownMs, 'Wheel')) return;
+  if (user.clouds < bet) {
+    return interaction.reply({ embeds: [errorEmbed(`Need **${bet}** clouds.`)], ephemeral: true });
+  }
+  await interaction.deferReply();
+  const table = [
+    { mult: 0, weight: 28 },
+    { mult: 0.5, weight: 22 },
+    { mult: 1, weight: 20 },
+    { mult: 1.5, weight: 16 },
+    { mult: 2, weight: 9 },
+    { mult: 3, weight: 4 },
+    { mult: 5, weight: 1 },
+  ];
+  const total = table.reduce((sum, row) => sum + row.weight, 0);
+  let roll = Math.random() * total;
+  let pickRow = table[0];
+  for (const row of table) {
+    roll -= row.weight;
+    if (roll <= 0) {
+      pickRow = row;
+      break;
+    }
+  }
+  const payout = Math.floor(bet * pickRow.mult);
+  const next = updateUser(interaction.user.id, guildIdOf(interaction), {
+    clouds: user.clouds - bet + payout,
+    last_wheel: now(),
+  });
+  const gif = await renderSceneGif('wheel', next, {
+    success: pickRow.mult >= 1.5,
+    subtitle: `${pickRow.mult}x`,
+    line: payout ? `+${payout}` : `-${bet}`,
+  });
+  return replyGif(
+    interaction,
+    okEmbed(
+      pickRow.mult ? `🎡 ${pickRow.mult}x` : '🎡 Dead spin',
+      `Bet **${bet}**. Wheel stopped on **${pickRow.mult}x**. ${payout ? `Cashed **${payout}**.` : 'Nothing back.'}`,
+      pickRow.mult >= 1.5 ? '#FFD700' : flavorOf(next).color,
+    ),
+    gif,
+    'wheel.gif',
+  );
+}
+
+export async function handleScratch(interaction) {
+  const bet = interaction.options.getInteger('bet') ?? 30;
+  const user = await loadProfile(interaction);
+  if (await denyCooldown(interaction, user.last_scratch, GAME.scratchCooldownMs, 'Scratch')) return;
+  if (user.clouds < bet) {
+    return interaction.reply({ embeds: [errorEmbed(`Need **${bet}** clouds.`)], ephemeral: true });
+  }
+  await interaction.deferReply();
+  const icons = ['💨', '💎', '🔥', '👑', '🧪'];
+  const tiles = [pick(icons), pick(icons), pick(icons)];
+  const counts = tiles.reduce((map, icon) => {
+    map[icon] = (map[icon] || 0) + 1;
+    return map;
+  }, {});
+  const best = Math.max(...Object.values(counts));
+  let payout = 0;
+  let title = 'No match';
+  if (best === 3) {
+    payout = bet * 8;
+    title = 'TRIPLE';
+  } else if (best === 2) {
+    payout = bet * 2;
+    title = 'PAIR';
+  }
+  const next = updateUser(interaction.user.id, guildIdOf(interaction), {
+    clouds: user.clouds - bet + payout,
+    last_scratch: now(),
+  });
+  const gif = await renderSceneGif('scratch', next, {
+    tiles,
+    success: payout > 0,
+    subtitle: tiles.join(' '),
+    line: payout ? `+${payout}` : `-${bet}`,
+  });
+  return replyGif(
+    interaction,
+    okEmbed(`🎫 ${title}`, `Scratched ${tiles.join(' ')}\n${payout ? `Paid **${payout}** clouds.` : 'Dead card.'}`, payout ? '#FFD700' : flavorOf(next).color),
+    gif,
+    'scratch.gif',
+  );
 }

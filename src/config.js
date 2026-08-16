@@ -49,6 +49,11 @@ export const GAME = {
   neonCost: 15,
   stickerCost: 15,
   crashCooldownMs: 15_000,
+  nightCooldownMs: 4 * 60 * 60_000,
+  diceCooldownMs: 12_000,
+  wheelCooldownMs: 18_000,
+  scratchCooldownMs: 45_000,
+  lockpickCooldownMs: 8 * 60 * 60_000,
 };
 
 export function validateConfig() {

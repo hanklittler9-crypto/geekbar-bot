@@ -10,10 +10,18 @@ import {
   hitBlocked,
   loadProfile,
   now,
+  randInt,
   replyGif,
   replyPng,
   xpGain,
   applyBuzz,
+  bumpQuest,
+  coilsSafe,
+  currentEvent,
+  ensureQuest,
+  eventMult,
+  QUEST_TYPES,
+  questNote,
 } from '../utils/game.js';
 
 export async function handleHit(interaction) {
@@ -25,20 +33,26 @@ export async function handleHit(interaction) {
   }
 
   await interaction.deferReply();
+  const ev = currentEvent();
   const xp = xpGain(user, 12 + Math.floor(Math.random() * 8));
-  const clouds = 4 + Math.floor(Math.random() * 9) + user.prestige;
+  const clouds = Math.floor((4 + Math.floor(Math.random() * 9) + user.prestige) * eventMult('hit'));
   const buzzed = applyBuzz(user, 3.5);
-  const next = updateUser(interaction.user.id, guildIdOf(interaction), {
+  const burnt = coilsSafe() ? false : buzzed.burnt;
+  const gid = guildIdOf(interaction);
+  const next = updateUser(interaction.user.id, gid, {
     battery: Math.max(0, user.battery - GAME.hitBatteryCost),
     pod_puffs: user.pod_puffs - GAME.hitPuffCost,
     total_hits: user.total_hits + 1,
     xp: user.xp + xp + (buzzed.maxed ? 40 : 0),
     clouds: user.clouds + clouds + buzzed.bonusClouds,
     buzz: buzzed.buzz,
-    burnt: buzzed.burnt ? 1 : user.burnt,
+    burnt: burnt ? 1 : user.burnt,
     xp_boost_until: buzzed.maxed ? buzzed.xpBoostUntil : user.xp_boost_until,
     last_hit: now(),
   });
+  const quest = bumpQuest(interaction.user.id, gid, 'hit');
+  const note = questNote(quest);
+  const eventTag = eventMult('hit') > 1 ? `\n🌍 ${ev.name} is live.` : '';
 
   const flavor = flavorOf(next);
   if (buzzed.maxed) {
@@ -46,11 +60,11 @@ export async function handleHit(interaction) {
       subtitle: 'BLACKOUT DUMP',
       line: `+${buzzed.bonusClouds} clouds`,
     });
-    const extra = buzzed.burnt ? '\nCoil **burnt** on the dump. Repair it.' : '\nXP doubler on for **20 minutes**. Buzz reset.';
+    const extra = burnt ? '\nCoil **burnt** on the dump. Repair it.' : '\nXP doubler on for **20 minutes**. Buzz reset.';
     const embed = new EmbedBuilder()
       .setColor('#FFD700')
       .setTitle('💥 MAX BUZZ')
-      .setDescription(`**${next.device_name}** hit 100 buzz and dumped.\nBonus **+${buzzed.bonusClouds} clouds**.${extra}`)
+      .setDescription(`**${next.device_name}** hit 100 buzz and dumped.\nBonus **+${buzzed.bonusClouds} clouds**.${extra}${eventTag}${note}`)
       .addFields(
         { name: 'Hit clouds', value: `+${clouds}`, inline: true },
         { name: 'Dump bonus', value: `+${buzzed.bonusClouds}`, inline: true },
@@ -63,7 +77,7 @@ export async function handleHit(interaction) {
   const embed = new EmbedBuilder()
     .setColor(flavor.color)
     .setTitle(`💨 ${next.device_name}`)
-    .setDescription(`You rip a hit of **${flavor.name}**. Clouds spill out of the LED screen.`)
+    .setDescription(`You rip a hit of **${flavor.name}**. Clouds spill out of the LED screen.${eventTag}${note}`)
     .addFields(
       { name: 'Clouds', value: `+${clouds}`, inline: true },
       { name: 'XP', value: `+${xp}`, inline: true },
@@ -76,12 +90,18 @@ export async function handleCharge(interaction) {
   const user = await loadProfile(interaction);
   if (await denyCooldown(interaction, user.last_charge, GAME.chargeCooldownMs, 'Charge')) return;
   await interaction.deferReply();
-  const next = updateUser(interaction.user.id, guildIdOf(interaction), {
+  const gid = guildIdOf(interaction);
+  const next = updateUser(interaction.user.id, gid, {
     battery: GAME.maxBattery,
     last_charge: now(),
   });
+  const quest = bumpQuest(interaction.user.id, gid, 'charge');
   const gif = await renderSceneGif('charge', next);
-  const embed = okEmbed('🔌 Charging', `**${next.device_name}** is topped off. USB-C clicked in.`, flavorOf(next).color);
+  const embed = okEmbed(
+    '🔌 Charging',
+    `**${next.device_name}** is topped off. USB-C clicked in.${questNote(quest)}`,
+    flavorOf(next).color,
+  );
   return replyGif(interaction, embed, gif, 'charge.gif');
 }
 
@@ -131,10 +151,11 @@ export async function handleFlavor(interaction) {
     }
     await interaction.deferReply();
     const next = updateUser(interaction.user.id, gid, { flavor: custom.id, pod_puffs: GAME.podCapacity });
+    const quest = bumpQuest(interaction.user.id, gid, 'flavor');
     const gif = await renderSceneGif('flavor', next, { subtitle: custom.notes || 'lab mix seated' });
     return replyGif(
       interaction,
-      okEmbed('🧪 Pod swapped', `**${next.device_name}** is running **${custom.name}**. Puffs refilled.`, custom.color),
+      okEmbed('🧪 Pod swapped', `**${next.device_name}** is running **${custom.name}**. Puffs refilled.${questNote(quest)}`, custom.color),
       gif,
       'flavor.gif',
     );
@@ -160,8 +181,9 @@ export async function handleFlavor(interaction) {
     flavor: flavor.id,
     pod_puffs: GAME.podCapacity,
   });
+  const quest = bumpQuest(interaction.user.id, gid, 'flavor');
   const gif = await renderSceneGif('flavor', next, { subtitle: 'click — fresh pod' });
-  const embed = okEmbed('🧪 Pod swapped', `**${next.device_name}** is running **${flavor.emoji} ${flavor.name}**. Puffs refilled.`, flavor.color);
+  const embed = okEmbed('🧪 Pod swapped', `**${next.device_name}** is running **${flavor.emoji} ${flavor.name}**. Puffs refilled.${questNote(quest)}`, flavor.color);
   return replyGif(interaction, embed, gif, 'flavor.gif');
 }
 
@@ -219,6 +241,121 @@ export async function handleDaily(interaction) {
   return replyGif(interaction, embed, gif, 'daily.gif');
 }
 
+export async function handleQuest(interaction) {
+  await interaction.deferReply();
+  const gid = guildIdOf(interaction);
+  const user = ensureQuest(await loadProfile(interaction), gid);
+  const def = QUEST_TYPES[user.quest_type];
+  const done = Boolean(user.quest_done);
+  const gif = await renderSceneGif('quest', user, {
+    success: done,
+    progress: user.quest_progress,
+    target: def.target,
+    subtitle: def.label,
+    line: done ? 'claimed for today' : `${user.quest_progress}/${def.target}`,
+  });
+  const text = done
+    ? `Today's quest is done: **${def.label}**.\nCome back tomorrow for a new one.`
+    : `**${def.label}** — **${user.quest_progress}/${def.target}**\nFinish it for about **${def.reward}+ clouds**.`;
+  return replyGif(interaction, okEmbed(done ? '📋 Quest done' : '📋 Daily quest', text, '#FFD700'), gif, 'quest.gif');
+}
+
+export async function handleEvent(interaction) {
+  await interaction.deferReply();
+  const user = await loadProfile(interaction);
+  const ev = currentEvent();
+  const gif = await renderSceneGif('event', user, {
+    title: ev.name,
+    subtitle: ev.desc,
+    line: 'rotates every hour',
+    color: ev.color,
+  });
+  return replyGif(
+    interaction,
+    okEmbed(`🌍 ${ev.name}`, `${ev.desc}\nRotates on the hour. Check \`/geekbar pulse\` for a live board.`, ev.color),
+    gif,
+    'event.gif',
+  );
+}
+
+export async function handleNight(interaction) {
+  const user = await loadProfile(interaction);
+  if (await denyCooldown(interaction, user.last_night, GAME.nightCooldownMs, 'Night hit')) return;
+  if (user.burnt) {
+    return interaction.reply({ embeds: [errorEmbed('Coil is burnt. Repair it first.')], ephemeral: true });
+  }
+
+  await interaction.deferReply();
+  const hour = new Date().getUTCHours();
+  const late = hour <= 6 || hour >= 22;
+  const ev = currentEvent();
+  const base = late ? randInt(22, 48) : randInt(8, 18);
+  const clouds = Math.floor((base + user.prestige * 2) * eventMult('night'));
+  const xp = xpGain(user, late ? 28 : 10);
+  const buzzed = applyBuzz(user, late ? 8 : 2);
+  const gid = guildIdOf(interaction);
+  const next = updateUser(interaction.user.id, gid, {
+    battery: Math.max(0, user.battery - (late ? 6 : 3)),
+    pod_puffs: Math.max(0, user.pod_puffs - 1),
+    total_hits: user.total_hits + 1,
+    xp: user.xp + xp + (buzzed.maxed ? 40 : 0),
+    clouds: user.clouds + clouds + buzzed.bonusClouds,
+    buzz: buzzed.buzz,
+    burnt: coilsSafe() ? user.burnt : buzzed.burnt ? 1 : user.burnt,
+    xp_boost_until: buzzed.maxed ? buzzed.xpBoostUntil : user.xp_boost_until,
+    last_night: now(),
+    last_hit: now(),
+  });
+  const quest = bumpQuest(interaction.user.id, gid, 'hit');
+  const when = late ? 'After hours. The LED is the only light.' : 'Daylight. Weak pull — come back late.';
+  const scene = buzzed.maxed ? 'buzzmax' : 'night';
+  const gif = await renderSceneGif(scene, next, {
+    subtitle: late ? 'VAMP WINDOW' : 'daylight',
+    line: `+${clouds} clouds`,
+  });
+  return replyGif(
+    interaction,
+    okEmbed(
+      late ? '🌙 Night hit' : '☀️ Daylight rip',
+      `${when}\n**+${clouds} clouds**, **+${xp} XP**.${ev.id === 'vamp' ? `\n🌍 ${ev.name} is juicing this.` : ''}${questNote(quest)}`,
+      late ? '#8B1E3F' : flavorOf(next).color,
+    ),
+    gif,
+    'night.gif',
+  );
+}
+
+export async function handlePulse(interaction) {
+  await interaction.deferReply();
+  const gid = guildIdOf(interaction);
+  const user = ensureQuest(await loadProfile(interaction), gid);
+  const ev = currentEvent();
+  const def = QUEST_TYPES[user.quest_type];
+  const gif = await renderSceneGif('event', user, {
+    title: ev.name,
+    subtitle: def ? `${def.label} ${user.quest_progress}/${def.target}` : 'no quest',
+    line: `buzz ${Math.round(user.buzz)}/100`,
+    color: ev.color,
+  });
+  const embed = new EmbedBuilder()
+    .setColor(ev.color)
+    .setTitle(`📡 ${user.device_name}`)
+    .setDescription(`*${user.tagline}*`)
+    .addFields(
+      { name: 'World event', value: `**${ev.name}**\n${ev.desc}`, inline: false },
+      {
+        name: 'Daily quest',
+        value: user.quest_done
+          ? `Done — **${def.label}**`
+          : `**${def.label}** · ${user.quest_progress}/${def.target}`,
+        inline: true,
+      },
+      { name: 'Buzz', value: `${Math.round(user.buzz)}/100`, inline: true },
+      { name: 'Clouds', value: String(user.clouds), inline: true },
+    );
+  return replyGif(interaction, embed, gif, 'pulse.gif');
+}
+
 export async function handleHelp(interaction) {
   const embed = new EmbedBuilder()
     .setColor(ACCENT)
@@ -235,6 +372,10 @@ export async function handleHelp(interaction) {
           '`/geekbar flavor` — swap pods',
           '`/geekbar stats` — generated stats card',
           '`/geekbar profile` / `flex` — card or show-off GIF',
+          '`/geekbar quest` — daily quest',
+          '`/geekbar event` — rotating world event',
+          '`/geekbar night` — after-hours bonus hit',
+          '`/geekbar pulse` — live event + quest + buzz GIF',
         ].join('\n'),
       },
       {
@@ -256,6 +397,7 @@ export async function handleHelp(interaction) {
           '`/geekbar heist spot` — raid a store',
           '`/geekbar heist wire` — cut wires minigame',
           '`/geekbar heist vanish` — 2h smoke shield',
+          '`/geekbar heist lockpick` — two-try pin minigame',
         ].join('\n'),
       },
       {
@@ -263,6 +405,7 @@ export async function handleHelp(interaction) {
         value: [
           '`/cloud slots` `flip` `pack` `chain`',
           '`/cloud lucky` `drop` `drip` `inspect` `crash` `quote` `roast` `highlow`',
+          '`/cloud dice` `wheel` `scratch`',
         ].join('\n'),
       },
       {
@@ -286,12 +429,13 @@ export async function handleHelp(interaction) {
           '`/yeat` `/twizzy` `/summrs` `/kankan` `/izaya` `/vamp` `/music`',
           '`/slowdown` `/blonde` `/walk` `/catken` `/meechie` `/perkpop`',
           '`/jumpout` `/osamason` `/agc` `/rino` `/dielit` `/selftitled` `/kenchain` `/lonesleep`',
+          '`/autumn` `/mosh` `/kenlive` `/cartidance` `/opiumfit` `/hba`',
         ].join('\n'),
       },
       {
         name: 'Fun / net',
         value: [
-          '`/fun 8ball` `aura` `rizz` `rate` `ship`',
+          '`/fun 8ball` `aura` `rizz` `rate` `ship` `pick` `howcool` `reverse` `clap`',
           '`/iplookup` — public IP or domain geo/ISP (not Discord users)',
           '`/ping` — bot latency',
           '`/fakeip` — joke fake trace (not real)',

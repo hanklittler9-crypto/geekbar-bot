@@ -82,6 +82,10 @@ export const geekbarCommand = new SlashCommandBuilder()
       ),
   )
   .addSubcommand((sub) => sub.setName('help').setDescription('All Geek Bar commands'))
+  .addSubcommand((sub) => sub.setName('quest').setDescription('Check or claim your daily operator quest'))
+  .addSubcommand((sub) => sub.setName('event').setDescription('See the rotating world event this hour'))
+  .addSubcommand((sub) => sub.setName('night').setDescription('After-hours hit — juiced late night, weaker in daylight'))
+  .addSubcommand((sub) => sub.setName('pulse').setDescription('Live pulse GIF — event, quest, buzz, and setup'))
   .addSubcommandGroup((group) =>
     group
       .setName('heist')
@@ -125,6 +129,9 @@ export const geekbarCommand = new SlashCommandBuilder()
       )
       .addSubcommand((sub) =>
         sub.setName('vanish').setDescription('Smoke bomb: spend clouds for a 2 hour raid shield'),
+      )
+      .addSubcommand((sub) =>
+        sub.setName('lockpick').setDescription('Feel the pins — two attempts to crack a lock for clouds'),
       ),
   )
   .addSubcommandGroup((group) =>
@@ -255,11 +262,42 @@ export const cloudCommand = new SlashCommandBuilder()
       .addIntegerOption((opt) =>
         opt.setName('bet').setDescription('Clouds to bet (default 20)').setMinValue(5).setMaxValue(200),
       ),
+  )
+  .addSubcommand((sub) =>
+    sub
+      .setName('dice')
+      .setDescription('Roll high or low')
+      .addStringOption((opt) =>
+        opt
+          .setName('call')
+          .setDescription('High (4-6) or low (1-3)')
+          .setRequired(true)
+          .addChoices({ name: 'High', value: 'high' }, { name: 'Low', value: 'low' }),
+      )
+      .addIntegerOption((opt) =>
+        opt.setName('bet').setDescription('Clouds to bet (default 20)').setMinValue(5).setMaxValue(200),
+      ),
+  )
+  .addSubcommand((sub) =>
+    sub
+      .setName('wheel')
+      .setDescription('Spin the cloud wheel')
+      .addIntegerOption((opt) =>
+        opt.setName('bet').setDescription('Clouds to bet (default 30)').setMinValue(10).setMaxValue(250),
+      ),
+  )
+  .addSubcommand((sub) =>
+    sub
+      .setName('scratch')
+      .setDescription('Scratch three tiles — match two or three')
+      .addIntegerOption((opt) =>
+        opt.setName('bet').setDescription('Clouds to bet (default 30)').setMinValue(10).setMaxValue(200),
+      ),
   );
 
 export const funCommand = new SlashCommandBuilder()
   .setName('fun')
-  .setDescription('Aura, rizz, 8ball, rate, ship')
+  .setDescription('Aura, rizz, 8ball, rate, ship, pick, howcool')
   .setIntegrationTypes(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)
   .setContexts(...contexts)
   .addSubcommand((sub) =>
@@ -292,6 +330,32 @@ export const funCommand = new SlashCommandBuilder()
       .setDescription('Ship two people')
       .addUserOption((opt) => opt.setName('user1').setDescription('First').setRequired(true))
       .addUserOption((opt) => opt.setName('user2').setDescription('Second').setRequired(true)),
+  )
+  .addSubcommand((sub) =>
+    sub
+      .setName('pick')
+      .setDescription('Pick one option from a comma-separated list')
+      .addStringOption((opt) =>
+        opt.setName('options').setDescription('e.g. mint, peach, sour').setRequired(true).setMaxLength(200),
+      ),
+  )
+  .addSubcommand((sub) =>
+    sub
+      .setName('howcool')
+      .setDescription('How cool is this person')
+      .addUserOption((opt) => opt.setName('user').setDescription('Who to scan')),
+  )
+  .addSubcommand((sub) =>
+    sub
+      .setName('reverse')
+      .setDescription('Reverse some text')
+      .addStringOption((opt) => opt.setName('text').setDescription('Text to flip').setRequired(true).setMaxLength(200)),
+  )
+  .addSubcommand((sub) =>
+    sub
+      .setName('clap')
+      .setDescription('👏 clap 👏 your 👏 words')
+      .addStringOption((opt) => opt.setName('text').setDescription('Words to clap').setRequired(true).setMaxLength(200)),
   );
 
 export const ipLookupCommand = new SlashCommandBuilder()

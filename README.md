@@ -18,6 +18,10 @@ This is a **fictional game**. It is not affiliated with Geek Bar or Dream Big.
 | `/geekbar flex` | Show-off GIF of your current setup |
 | `/geekbar repair` | Fix a burnt coil |
 | `/geekbar prestige` | Reset XP at level 15+ for Onyx wrap, Prestige Fog, and an XP bonus |
+| `/geekbar quest` | Daily operator quest — hits, charges, raids, chains, slots, or flavor swaps |
+| `/geekbar event` | Rotating hourly world event (double clouds, flavor rain, vamp hours, stash heat, dead air) |
+| `/geekbar night` | After-hours hit — juiced late night UTC, weaker in daylight |
+| `/geekbar pulse` | Live GIF of the current event, quest, and buzz |
 
 ### Economy
 | Command | Description |
@@ -42,6 +46,7 @@ This is a **fictional game**. It is not affiliated with Geek Bar or Dream Big.
 | `/geekbar heist spot` | Raid a corner store, smoke shop, or warehouse |
 | `/geekbar heist wire` | Cut 3 wires in order — high payout minigame |
 | `/geekbar heist vanish` | Smoke bomb: 2 hour raid shield |
+| `/geekbar heist lockpick` | Two-try pin minigame — crack a lock for clouds |
 
 ### Cloud minigames
 | Command | Description |
@@ -54,6 +59,13 @@ This is a **fictional game**. It is not affiliated with Geek Bar or Dream Big.
 | `/cloud drop` | Pick the live crate |
 | `/cloud drip` | Collect idle clouds |
 | `/cloud inspect` | Cloud rating card |
+| `/cloud crash` | All-in crash — multiply or go to zero |
+| `/cloud quote` | Random opium / cloud quote |
+| `/cloud roast` | Roast someone's setup |
+| `/cloud highlow` | Guess if the next roll is higher or lower |
+| `/cloud dice` | High/low dice roll |
+| `/cloud wheel` | Spin a weighted multiplier wheel |
+| `/cloud scratch` | Scratch three tiles — pair or triple pays |
 
 ### Studio (GIFs + image modals)
 | Command | Description |
@@ -84,6 +96,18 @@ This is a **fictional game**. It is not affiliated with Geek Bar or Dream Big.
 | `/homixide` | Homixide Gang GIF |
 | `/yvl` | YVL GIF |
 | `/perkpop` | Trippy California GIF |
+| plus more | `/yeat` `/twizzy` `/summrs` `/kankan` `/izaya` `/vamp` `/music` `/slowdown` `/blonde` `/walk` `/catken` `/meechie` `/jumpout` `/osamason` `/agc` `/rino` `/dielit` `/selftitled` `/kenchain` `/lonesleep` `/autumn` `/mosh` `/kenlive` `/cartidance` `/opiumfit` `/hba` |
+
+### Fun
+| Command | Description |
+|---------|-------------|
+| `/fun 8ball` | Ask the 8-ball |
+| `/fun aura` `/rizz` `/howcool` | Meter scans |
+| `/fun rate` `/ship` `/pick` | Rate, ship, or pick from a list |
+| `/fun reverse` `/clap` | Text toys |
+| `/iplookup` | Public IP or domain geo/ISP (not Discord users) |
+| `/fakeip` | Joke fake trace (documentation-range IP) |
+| `/ping` | Bot latency |
 
 ## Local setup
 
@@ -137,6 +161,9 @@ npm run deploy-commands
 - **Battery** — each hit costs 4%. Charge to refill (3 min cooldown).
 - **Pods** — 500 puffs. Swap a flavor or buy a refill when empty.
 - **Clouds** — currency. Earn from hits, dailies, chases, and heists.
+- **Quests** — one daily objective. Completing it pays clouds + XP. Dead Air hours pay extra.
+- **World events** — rotate every hour and juice hits, raids, nights, chains, or stash withdrawals.
+- **Max buzz** — hitting 100 buzz dumps bonus clouds, starts a 20-minute XP doubler, and resets buzz.
 - **Stash** — raid/jack only steal unstashed clouds. Shield item blocks heists for 24h.
 - **Burnt coil** — failed jacks can burn the device until you repair it.
 - GIFs and posters are generated on the machine running the bot (`@napi-rs/canvas` + `gifenc`).

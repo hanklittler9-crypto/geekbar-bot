@@ -409,6 +409,115 @@ export async function renderSceneGif(scene, user, extras = {}) {
         x: 230,
       });
       drawCaption(ctx, [extras.title || 'VIBE', extras.subtitle || flavor.name, extras.line || ''], extras.color || flavor.color);
+    } else if (scene === 'quest') {
+      const progress = extras.progress ?? 0;
+      const target = extras.target ?? 1;
+      roundRect(ctx, 28, 150, 200, 16, 8);
+      ctx.fillStyle = 'rgba(255,255,255,0.12)';
+      ctx.fill();
+      roundRect(ctx, 28, 150, Math.max(12, 200 * clamp01(progress / target)), 16, 8);
+      ctx.fillStyle = rgb('#FFD700', 0.9);
+      ctx.fill();
+      drawVapor(ctx, '#FFD700', t, extras.success ? 1.3 : 0.5);
+      drawDevice(ctx, user, flavor, skin, { wrapImage, glow: extras.success ? 1.4 : 0.7, scale: 0.85 });
+      drawCaption(ctx, [extras.success ? 'QUEST DONE' : 'DAILY QUEST', extras.subtitle || '', extras.line || ''], '#FFD700');
+    } else if (scene === 'event') {
+      ctx.fillStyle = rgb(extras.color || flavor.color, 0.14 + t * 0.1);
+      ctx.fillRect(0, 0, W, H);
+      ctx.shadowColor = extras.color || flavor.color;
+      ctx.shadowBlur = 22 + Math.sin(t * 10) * 10;
+      ctx.fillStyle = extras.color || flavor.color;
+      ctx.font = font(22, true);
+      ctx.fillText((extras.title || 'EVENT').slice(0, 18), 24, 70);
+      ctx.shadowBlur = 0;
+      drawVapor(ctx, extras.color || flavor.color, t, 1.1, 200, 90);
+      drawDevice(ctx, user, { ...flavor, color: extras.color || flavor.color }, skin, {
+        wrapImage,
+        x: 240,
+        scale: 0.75,
+        glow: 1.2,
+      });
+      drawCaption(ctx, [extras.title || 'WORLD EVENT', extras.subtitle || '', extras.line || ''], extras.color || flavor.color);
+    } else if (scene === 'night') {
+      ctx.fillStyle = 'rgba(8, 4, 20, 0.45)';
+      ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = rgb('#FFE566', 0.85);
+      ctx.beginPath();
+      ctx.arc(48, 48, 14 + Math.sin(t * 6) * 2, 0, Math.PI * 2);
+      ctx.fill();
+      drawVapor(ctx, flavor.color, t, 1.4, 210, 30);
+      drawDevice(ctx, user, flavor, skin, {
+        wrapImage,
+        glow: 1.3,
+        tilt: Math.sin(t * 8) * -0.06,
+      });
+      drawCaption(ctx, ['NIGHT HIT', extras.subtitle || 'after hours', extras.line || ''], flavor.color);
+    } else if (scene === 'lockpick') {
+      for (let p = 0; p < 4; p++) {
+        const bx = 40 + p * 50;
+        const rise = extras.success && extras.pin === p ? 28 + t * 18 : 18 + Math.sin((t + p) * 8) * 6;
+        roundRect(ctx, bx, 90, 28, 70, 6);
+        ctx.fillStyle = 'rgba(0,0,0,0.55)';
+        ctx.fill();
+        roundRect(ctx, bx + 6, 150 - rise, 16, rise, 4);
+        ctx.fillStyle = extras.success && extras.pin === p ? rgb('#00F5A0', 0.9) : rgb(flavor.color, 0.7);
+        ctx.fill();
+      }
+      drawDevice(ctx, user, flavor, skin, { wrapImage, x: 250, scale: 0.7, glow: extras.success ? 1.2 : 0.3 });
+      drawCaption(ctx, [extras.success ? 'UNLOCKED' : 'LOCKPICK', extras.subtitle || '', extras.line || ''], extras.success ? '#00F5A0' : flavor.color);
+    } else if (scene === 'dice') {
+      const face = extras.face || 6;
+      const spin = t < 0.75 ? Math.floor(1 + ((t * 20 + seed) % 6)) : face;
+      roundRect(ctx, 130, 70, 90, 90, 18);
+      ctx.fillStyle = '#F4FFFB';
+      ctx.fill();
+      ctx.fillStyle = '#111';
+      ctx.font = font(42, true);
+      ctx.fillText(String(spin), 158, 130);
+      drawDevice(ctx, user, flavor, skin, { wrapImage, x: 250, scale: 0.65, glow: extras.success ? 1.2 : 0.4 });
+      drawCaption(ctx, [extras.success ? 'HIT' : 'MISS', extras.subtitle || `rolled ${face}`, extras.line || ''], extras.success ? '#00F5A0' : '#FF5C5C');
+    } else if (scene === 'wheel') {
+      const spin = t * Math.PI * 6;
+      ctx.save();
+      ctx.translate(180, 118);
+      ctx.rotate(spin);
+      const slices = ['0x', '.5x', '1x', '1.5x', '2x', '3x'];
+      slices.forEach((label, idx) => {
+        ctx.fillStyle = idx % 2 === 0 ? rgb(flavor.color, 0.55) : rgb('#FFD700', 0.45);
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.arc(0, 0, 70, (idx / 6) * Math.PI * 2, ((idx + 1) / 6) * Math.PI * 2);
+        ctx.closePath();
+        ctx.fill();
+        ctx.fillStyle = '#fff';
+        ctx.font = font(10, true);
+        ctx.fillText(label, 18, 4);
+        ctx.rotate(Math.PI / 3);
+      });
+      ctx.restore();
+      ctx.fillStyle = '#FFD700';
+      ctx.beginPath();
+      ctx.moveTo(180, 36);
+      ctx.lineTo(172, 52);
+      ctx.lineTo(188, 52);
+      ctx.fill();
+      drawCaption(ctx, ['WHEEL', extras.subtitle || '', extras.line || ''], extras.success ? '#FFD700' : flavor.color);
+    } else if (scene === 'scratch') {
+      const tiles = extras.tiles || ['💨', '💎', '🔥'];
+      tiles.forEach((icon, idx) => {
+        const bx = 40 + idx * 100;
+        roundRect(ctx, bx, 80, 86, 86, 14);
+        ctx.fillStyle = t < 0.35 ? 'rgba(180,180,180,0.7)' : 'rgba(0,0,0,0.55)';
+        ctx.fill();
+        ctx.strokeStyle = rgb(flavor.color, 0.8);
+        ctx.stroke();
+        if (t >= 0.35) {
+          ctx.font = font(32, true);
+          ctx.fillStyle = '#fff';
+          ctx.fillText(icon, bx + 22, 138);
+        }
+      });
+      drawCaption(ctx, [extras.success ? 'MATCH' : 'SCRATCH', extras.subtitle || '', extras.line || ''], extras.success ? '#FFD700' : flavor.color);
     } else {
       drawDevice(ctx, user, flavor, skin, { wrapImage, glow: 0.8 });
       drawCaption(ctx, [extras.title || 'GEEK BAR', extras.subtitle || '', extras.line || ''], flavor.color);

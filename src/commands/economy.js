@@ -11,7 +11,7 @@ import {
 import { FLAVORS, SKINS, SHOP_ITEMS, getFlavor, getShopItem, getSkin } from '../data/gameData.js';
 import { errorEmbed, flavorOf, okEmbed, ACCENT } from '../utils/embeds.js';
 import { renderSceneGif } from '../utils/gifGenerator.js';
-import { guildIdOf, loadProfile, replyGif } from '../utils/game.js';
+import { currentEvent, guildIdOf, loadProfile, replyGif } from '../utils/game.js';
 
 export async function handleShop(interaction) {
   const buy = interaction.options.getString('buy');
@@ -144,11 +144,14 @@ export async function handleStash(interaction) {
   if (user.stash < take) {
     return interaction.reply({ embeds: [errorEmbed('Not enough in the stash.')], ephemeral: true });
   }
+  const ev = currentEvent();
+  const bonus = ev.id === 'heat' ? Math.floor(take * 0.1) : 0;
   updateUser(interaction.user.id, guildIdOf(interaction), {
-    clouds: user.clouds + take,
+    clouds: user.clouds + take + bonus,
     stash: user.stash - take,
   });
-  return interaction.reply({ embeds: [okEmbed('Withdrawn', `Pulled **${take}** clouds back onto your person.`)] });
+  const extra = bonus ? `\n🌍 ${ev.name} found **+${bonus}** extra in the lining.` : '';
+  return interaction.reply({ embeds: [okEmbed('Withdrawn', `Pulled **${take}** clouds back onto your person.${extra}`)] });
 }
 
 export async function handleGift(interaction) {

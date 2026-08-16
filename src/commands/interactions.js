@@ -6,7 +6,7 @@ import { errorEmbed, flavorOf, okEmbed } from '../utils/embeds.js';
 import { renderSceneGif, renderStill } from '../utils/gifGenerator.js';
 import { guildIdOf, loadProfile, replyGif, replyPng } from '../utils/game.js';
 import { generateRenderPng, generateVibeGif, sanitizeHex } from './studio.js';
-import { resolveChase, resolveSmokeout, resolveSpot, resolveWire } from './heist.js';
+import { resolveChase, resolveLockpick, resolveSmokeout, resolveSpot, resolveWire } from './heist.js';
 import { resolveDrop } from './extras.js';
 
 export async function handleModal(interaction) {
@@ -55,6 +55,13 @@ export async function handleButton(interaction) {
       return interaction.reply({ embeds: [errorEmbed('This wire job is not yours.')], ephemeral: true });
     }
     return resolveWire(interaction, Number(index));
+  }
+  if (id.startsWith('lockpick:')) {
+    const [, ownerId, index] = id.split(':');
+    if (interaction.user.id !== ownerId) {
+      return interaction.reply({ embeds: [errorEmbed('This lock is not yours.')], ephemeral: true });
+    }
+    return resolveLockpick(interaction, Number(index));
   }
 }
 
