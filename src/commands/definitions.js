@@ -303,6 +303,81 @@ export const ipLookupCommand = new SlashCommandBuilder()
     opt.setName('target').setDescription('Public IP or domain, e.g. 8.8.8.8 or discord.com').setRequired(true),
   );
 
+export const ipCommand = new SlashCommandBuilder()
+  .setName('ip')
+  .setDescription('Public IP tools — geo, DNS, map. Not Discord user IPs.')
+  .setIntegrationTypes(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)
+  .setContexts(...contexts)
+  .addSubcommand((sub) =>
+    sub
+      .setName('lookup')
+      .setDescription('Look up a public IP or domain')
+      .addStringOption((opt) =>
+        opt.setName('ip').setDescription('Public IP or domain to look up').setRequired(true),
+      ),
+  )
+  .addSubcommand((sub) =>
+    sub
+      .setName('dns')
+      .setDescription('Resolve a public domain to A / AAAA records')
+      .addStringOption((opt) =>
+        opt.setName('host').setDescription('Domain, e.g. discord.com').setRequired(true),
+      ),
+  )
+  .addSubcommand((sub) =>
+    sub
+      .setName('reverse')
+      .setDescription('Reverse DNS (PTR) for a public IP')
+      .addStringOption((opt) =>
+        opt.setName('ip').setDescription('Public IP, e.g. 1.1.1.1').setRequired(true),
+      ),
+  )
+  .addSubcommand((sub) =>
+    sub
+      .setName('map')
+      .setDescription('OpenStreetMap link for a public IP or domain')
+      .addStringOption((opt) =>
+        opt.setName('ip').setDescription('Public IP or domain').setRequired(true),
+      ),
+  )
+  .addSubcommand((sub) =>
+    sub
+      .setName('compare')
+      .setDescription('Compare two public IPs or domains')
+      .addStringOption((opt) => opt.setName('a').setDescription('First public IP or domain').setRequired(true))
+      .addStringOption((opt) => opt.setName('b').setDescription('Second public IP or domain').setRequired(true)),
+  )
+  .addSubcommand((sub) =>
+    sub
+      .setName('check')
+      .setDescription('Classify an address: public, private, reserved, docs')
+      .addStringOption((opt) =>
+        opt.setName('ip').setDescription('IP or domain to classify').setRequired(true),
+      ),
+  )
+  .addSubcommand((sub) =>
+    sub
+      .setName('time')
+      .setDescription('Local time at a public IP or domain')
+      .addStringOption((opt) =>
+        opt.setName('ip').setDescription('Public IP or domain').setRequired(true),
+      ),
+  )
+  .addSubcommand((sub) =>
+    sub
+      .setName('weather')
+      .setDescription('Weather near a public IP or domain (city geo)')
+      .addStringOption((opt) =>
+        opt.setName('ip').setDescription('Public IP or domain').setRequired(true),
+      ),
+  )
+  .addSubcommand((sub) =>
+    sub
+      .setName('joke')
+      .setDescription('Fake TEST-NET trace (not real)')
+      .addUserOption((opt) => opt.setName('user').setDescription('Who to fake-trace')),
+  );
+
 export const pingCommand = new SlashCommandBuilder()
   .setName('ping')
   .setDescription('Bot latency')
@@ -324,6 +399,6 @@ export const memeCommands = MEME_GIFS.map((meme) =>
     .setContexts(...contexts),
 );
 
-export const commands = [geekbarCommand, cloudCommand, funCommand, ipLookupCommand, pingCommand, fakeIpCommand, ...memeCommands];
+export const commands = [geekbarCommand, cloudCommand, funCommand, ipCommand, ipLookupCommand, pingCommand, fakeIpCommand, ...memeCommands];
 
 export const GIF_EFFECT_CHOICES = GIF_EFFECTS.map((e) => ({ name: `${e.emoji} ${e.name}`, value: e.id }));

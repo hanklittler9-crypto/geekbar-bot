@@ -2,7 +2,8 @@ import { handleAutocomplete, handleGeekbar } from './handler.js';
 import { handleCloud } from './extras.js';
 import { handleMeme } from './meme.js';
 import { getMeme } from '../data/memes.js';
-import { handleFakeIp, handleFun, handleIpLookup, handlePing } from './fun.js';
+import { handleFakeIp, handleFun, handlePing } from './fun.js';
+import { handleIpCommand, handleIpLookup } from './ip.js';
 
 export async function routeCommand(interaction) {
   if (interaction.commandName === 'geekbar') {
@@ -13,6 +14,9 @@ export async function routeCommand(interaction) {
   }
   if (interaction.commandName === 'fun') {
     return handleFun(interaction);
+  }
+  if (interaction.commandName === 'ip') {
+    return handleIpCommand(interaction);
   }
   if (interaction.commandName === 'iplookup') {
     return handleIpLookup(interaction);

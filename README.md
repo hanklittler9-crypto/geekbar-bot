@@ -132,6 +132,38 @@ Or register commands without starting:
 npm run deploy-commands
 ```
 
+### Adding your own slash command
+
+You can paste a command yourself on GitHub, or ask the agent to add it. This repo is ESM (`import`, not `require`).
+
+1. Define the slash command in `src/commands/definitions.js`
+2. Write the handler (usually `src/commands/fun.js` or a new file)
+3. Route it in `src/commands/router.js`
+4. Commit, push, open a PR (or merge to `master`)
+5. On the Ubuntu box:
+
+```bash
+cd /home/gfxastro/geekbar-bot
+git pull
+pm2 restart geekbar
+```
+
+Commands register again on startup. Global ones can take a few minutes to show.
+
+Public IP tools (not Discord user IPs; private / reserved ranges are rejected):
+
+| Command | Description |
+|---------|-------------|
+| `/ip lookup` `/iplookup` | Geo, ISP, proxy, hosting |
+| `/ip dns` | Public A / AAAA records for a domain |
+| `/ip reverse` | PTR / reverse DNS for a public IP |
+| `/ip map` | OpenStreetMap link from public coords |
+| `/ip compare` | Two public targets + distance |
+| `/ip check` | Classify public / private / reserved / docs |
+| `/ip time` | Timezone + local time at a public target |
+| `/ip weather` | Weather near the public geo city |
+| `/ip joke` `/fakeip` | Fake TEST-NET trace (not real) |
+
 ## Game notes
 
 - **Battery** — each hit costs 4%. Charge to refill (3 min cooldown).

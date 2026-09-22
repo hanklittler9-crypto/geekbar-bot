@@ -1,53 +1,9 @@
 import { EmbedBuilder } from 'discord.js';
-import { errorEmbed, okEmbed, ACCENT } from '../utils/embeds.js';
+import { okEmbed } from '../utils/embeds.js';
 import { pick, randInt } from '../utils/game.js';
 
 const FAKE_CITIES = ['Vamp City', 'Opium Hills', 'Teen X Bluffs', 'Slatt Harbor', 'YVL Springs'];
 const FAKE_ISPS = ['CloudNet Joke ISP', 'PerkPop Fiber', 'King Vamp Wireless', 'Test-Net Documentation'];
-
-function isIpOrHost(value) {
-  const v = String(value || '').trim();
-  if (!v || v.length > 253) return false;
-  if (/\s/.test(v)) return false;
-  if (/^(localhost|127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[0-1])\.|0\.0\.0\.0)/i.test(v)) return false;
-  return /^(?:(?:[a-z0-9-]+\.)+[a-z]{2,}|(?:\d{1,3}\.){3}\d{1,3}|[a-f0-9:]+)$/i.test(v);
-}
-
-export async function handleIpLookup(interaction) {
-  const query = interaction.options.getString('target', true).trim();
-  if (!isIpOrHost(query)) {
-    return interaction.reply({
-      embeds: [errorEmbed('Give a public IP or domain like `8.8.8.8` or `discord.com`. Private IPs and Discord users are not supported.')],
-      ephemeral: true,
-    });
-  }
-
-  await interaction.deferReply();
-  try {
-    const url = `http://ip-api.com/json/${encodeURIComponent(query)}?fields=status,message,country,regionName,city,isp,org,as,query,timezone`;
-    const res = await fetch(url, { headers: { 'User-Agent': 'geekbar-bot' } });
-    const data = await res.json();
-    if (data.status !== 'success') {
-      return interaction.editReply({ embeds: [errorEmbed(data.message || 'Lookup failed.')] });
-    }
-    const embed = new EmbedBuilder()
-      .setColor(ACCENT)
-      .setTitle(`IP lookup — ${data.query}`)
-      .setDescription('Public geo/ISP data only. This does not show Discord user IPs.')
-      .addFields(
-        { name: 'Country', value: data.country || '—', inline: true },
-        { name: 'Region', value: data.regionName || '—', inline: true },
-        { name: 'City', value: data.city || '—', inline: true },
-        { name: 'ISP', value: data.isp || '—', inline: true },
-        { name: 'Org', value: data.org || '—', inline: true },
-        { name: 'ASN', value: data.as || '—', inline: true },
-        { name: 'Timezone', value: data.timezone || '—', inline: true },
-      );
-    return interaction.editReply({ embeds: [embed] });
-  } catch {
-    return interaction.editReply({ embeds: [errorEmbed('Lookup API is down. Try again later.')] });
-  }
-}
 
 export async function handleFakeIp(interaction) {
   const target = interaction.options.getUser('user') ?? interaction.user;
