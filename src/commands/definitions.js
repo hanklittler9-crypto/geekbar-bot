@@ -305,7 +305,7 @@ export const ipLookupCommand = new SlashCommandBuilder()
 
 export const ipCommand = new SlashCommandBuilder()
   .setName('ip')
-  .setDescription('IP lookup')
+  .setDescription('Public IP tools — geo, DNS, map. Not Discord user IPs.')
   .setIntegrationTypes(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)
   .setContexts(...contexts)
   .addSubcommand((sub) =>
@@ -315,6 +315,67 @@ export const ipCommand = new SlashCommandBuilder()
       .addStringOption((opt) =>
         opt.setName('ip').setDescription('Public IP or domain to look up').setRequired(true),
       ),
+  )
+  .addSubcommand((sub) =>
+    sub
+      .setName('dns')
+      .setDescription('Resolve a public domain to A / AAAA records')
+      .addStringOption((opt) =>
+        opt.setName('host').setDescription('Domain, e.g. discord.com').setRequired(true),
+      ),
+  )
+  .addSubcommand((sub) =>
+    sub
+      .setName('reverse')
+      .setDescription('Reverse DNS (PTR) for a public IP')
+      .addStringOption((opt) =>
+        opt.setName('ip').setDescription('Public IP, e.g. 1.1.1.1').setRequired(true),
+      ),
+  )
+  .addSubcommand((sub) =>
+    sub
+      .setName('map')
+      .setDescription('OpenStreetMap link for a public IP or domain')
+      .addStringOption((opt) =>
+        opt.setName('ip').setDescription('Public IP or domain').setRequired(true),
+      ),
+  )
+  .addSubcommand((sub) =>
+    sub
+      .setName('compare')
+      .setDescription('Compare two public IPs or domains')
+      .addStringOption((opt) => opt.setName('a').setDescription('First public IP or domain').setRequired(true))
+      .addStringOption((opt) => opt.setName('b').setDescription('Second public IP or domain').setRequired(true)),
+  )
+  .addSubcommand((sub) =>
+    sub
+      .setName('check')
+      .setDescription('Classify an address: public, private, reserved, docs')
+      .addStringOption((opt) =>
+        opt.setName('ip').setDescription('IP or domain to classify').setRequired(true),
+      ),
+  )
+  .addSubcommand((sub) =>
+    sub
+      .setName('time')
+      .setDescription('Local time at a public IP or domain')
+      .addStringOption((opt) =>
+        opt.setName('ip').setDescription('Public IP or domain').setRequired(true),
+      ),
+  )
+  .addSubcommand((sub) =>
+    sub
+      .setName('weather')
+      .setDescription('Weather near a public IP or domain (city geo)')
+      .addStringOption((opt) =>
+        opt.setName('ip').setDescription('Public IP or domain').setRequired(true),
+      ),
+  )
+  .addSubcommand((sub) =>
+    sub
+      .setName('joke')
+      .setDescription('Fake TEST-NET trace (not real)')
+      .addUserOption((opt) => opt.setName('user').setDescription('Who to fake-trace')),
   );
 
 export const pingCommand = new SlashCommandBuilder()

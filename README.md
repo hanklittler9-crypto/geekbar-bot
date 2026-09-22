@@ -150,7 +150,19 @@ pm2 restart geekbar
 
 Commands register again on startup. Global ones can take a few minutes to show.
 
-Public IP lookups: `/ip lookup` and `/iplookup`. Private IPs and Discord users are rejected.
+Public IP tools (not Discord user IPs; private / reserved ranges are rejected):
+
+| Command | Description |
+|---------|-------------|
+| `/ip lookup` `/iplookup` | Geo, ISP, proxy, hosting |
+| `/ip dns` | Public A / AAAA records for a domain |
+| `/ip reverse` | PTR / reverse DNS for a public IP |
+| `/ip map` | OpenStreetMap link from public coords |
+| `/ip compare` | Two public targets + distance |
+| `/ip check` | Classify public / private / reserved / docs |
+| `/ip time` | Timezone + local time at a public target |
+| `/ip weather` | Weather near the public geo city |
+| `/ip joke` `/fakeip` | Fake TEST-NET trace (not real) |
 
 ## Game notes
 

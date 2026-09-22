@@ -292,7 +292,8 @@ export async function handleHelp(interaction) {
         name: 'Fun / net',
         value: [
           '`/fun 8ball` `aura` `rizz` `rate` `ship`',
-          '`/ip lookup` `/iplookup` — public IP or domain geo/ISP (not Discord users)',
+          '`/ip lookup` `dns` `reverse` `map` `compare` `check` `time` `weather` `joke`',
+          '`/iplookup` — public IP or domain geo/ISP (not Discord users)',
           '`/ping` — bot latency',
           '`/fakeip` — joke fake trace (not real)',
         ].join('\n'),
