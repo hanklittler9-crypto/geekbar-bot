@@ -3,7 +3,7 @@ import { handleCloud } from './extras.js';
 import { handleMeme } from './meme.js';
 import { getMeme } from '../data/memes.js';
 import { handleFakeIp, handleFun, handlePing } from './fun.js';
-import { handleIpCommand, handleIpLookup } from './ip.js';
+import { handleIpCommand, handleIpLookup, handleGenerate } from './ip.js';
 
 export async function routeCommand(interaction) {
   if (interaction.commandName === 'geekbar') {
@@ -17,6 +17,9 @@ export async function routeCommand(interaction) {
   }
   if (interaction.commandName === 'ip') {
     return handleIpCommand(interaction);
+  }
+  if (interaction.commandName === 'ipgen') {
+    return handleGenerate(interaction);
   }
   if (interaction.commandName === 'iplookup') {
     return handleIpLookup(interaction);

@@ -294,6 +294,7 @@ export async function handleHelp(interaction) {
           '`/fun 8ball` `aura` `rizz` `rate` `ship`',
           '`/ip lookup` `dns` `reverse` `map` `compare` `check` `time` `weather` `joke`',
           '`/ip whois` `convert` `cidr` `isp` `sun` `air` `mine`',
+          '`/ip generate` `/ipgen` — fake IPs that look real (docs ranges only)',
           '`/iplookup` — public IP or domain geo/ISP (not Discord users)',
           '`/ping` — bot latency',
           '`/fakeip` — joke fake trace (not real)',

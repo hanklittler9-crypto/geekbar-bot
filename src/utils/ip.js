@@ -28,6 +28,7 @@ export function classifyIpv4(ip) {
   if (a === 100 && b >= 64 && b <= 127) return 'cgnat';
   if (a === 192 && b === 0 && c === 2) return 'documentation';
   if (a === 198 && b === 51 && c === 100) return 'documentation';
+  if (a === 198 && (b === 18 || b === 19)) return 'documentation';
   if (a === 203 && b === 0 && c === 113) return 'documentation';
   if (a >= 224 && a <= 239) return 'multicast';
   if (a >= 240) return 'reserved';
@@ -56,9 +57,12 @@ export function classifyTarget(raw) {
 
   if (value.includes(':') && /^[a-f0-9:]+$/i.test(value)) {
     const lower = value.toLowerCase();
-    const klass = lower === '::1' || lower.startsWith('fe80:') || lower.startsWith('fc') || lower.startsWith('fd')
-      ? 'private'
-      : 'public';
+    let klass = 'public';
+    if (lower === '::1' || lower.startsWith('fe80:') || lower.startsWith('fc') || lower.startsWith('fd')) {
+      klass = 'private';
+    } else if (lower === '2001:db8' || lower.startsWith('2001:db8:') || lower.startsWith('2001:db8::')) {
+      klass = 'documentation';
+    }
     return { ok: true, kind: 'ipv6', value, class: klass, public: klass === 'public' };
   }
 
@@ -181,4 +185,65 @@ export function summarizeRdap(data) {
     org: fn || data.entities?.[0]?.handle || 'N/A',
     link: data.links?.find((l) => l.rel === 'self')?.href || '',
   };
+}
+
+function randInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function pick(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+const FAKE_V4_POOLS = [
+  { prefix: '192.0.2', label: 'TEST-NET-1 · RFC 5737', make: () => `192.0.2.${randInt(1, 254)}` },
+  { prefix: '198.51.100', label: 'TEST-NET-2 · RFC 5737', make: () => `198.51.100.${randInt(1, 254)}` },
+  { prefix: '203.0.113', label: 'TEST-NET-3 · RFC 5737', make: () => `203.0.113.${randInt(1, 254)}` },
+  { prefix: '198.18/15', label: 'benchmark · RFC 2544', make: () => `198.${randInt(18, 19)}.${randInt(0, 255)}.${randInt(1, 254)}` },
+];
+
+const FAKE_FLAVOR = [
+  { city: 'Northridge', region: 'CA', country: 'United States', tz: 'America/Los_Angeles', isp: 'ExampleNet LLC', as: 'AS64496 EXAMPLE-DOCS' },
+  { city: 'Redwood Grove', region: 'OR', country: 'United States', tz: 'America/Los_Angeles', isp: 'Documentation Fiber', as: 'AS64497 EXAMPLE-DOCS' },
+  { city: 'Harborview', region: 'WA', country: 'United States', tz: 'America/Los_Angeles', isp: 'RFC Example ISP', as: 'AS64498 EXAMPLE-DOCS' },
+  { city: 'Millbrook', region: 'NY', country: 'United States', tz: 'America/New_York', isp: 'TEST-NET Communications', as: 'AS64499 EXAMPLE-DOCS' },
+  { city: 'Cedar Falls', region: 'IA', country: 'United States', tz: 'America/Chicago', isp: 'Reserved Range Wireless', as: 'AS64500 EXAMPLE-DOCS' },
+  { city: 'Stonehaven', region: 'SCT', country: 'United Kingdom', tz: 'Europe/London', isp: 'ExampleHost Ltd', as: 'AS64501 EXAMPLE-DOCS' },
+];
+
+export function generateFakeIp(kind = 'v4') {
+  if (kind === 'v6') {
+    const a = randInt(0, 0xffff).toString(16);
+    const b = randInt(0, 0xffff).toString(16);
+    const c = randInt(1, 0xffff).toString(16);
+    return {
+      ip: `2001:db8:${a}:${b}::${c}`,
+      version: 'v6',
+      range: '2001:db8::/32 · RFC 3849',
+      flavor: pick(FAKE_FLAVOR),
+    };
+  }
+  const pool = pick(FAKE_V4_POOLS);
+  return {
+    ip: pool.make(),
+    version: 'v4',
+    range: pool.label,
+    flavor: pick(FAKE_FLAVOR),
+  };
+}
+
+export function generateFakeIps(count = 1, kind = 'v4') {
+  const n = Math.min(8, Math.max(1, count));
+  const items = [];
+  const seen = new Set();
+  let guard = 0;
+  while (items.length < n && guard < 40) {
+    const row = generateFakeIp(kind === 'both' ? (items.length % 2 ? 'v6' : 'v4') : kind);
+    if (!seen.has(row.ip)) {
+      seen.add(row.ip);
+      items.push(row);
+    }
+    guard += 1;
+  }
+  return items;
 }

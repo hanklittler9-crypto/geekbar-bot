@@ -14,6 +14,7 @@ import {
   parseIpv4,
   requirePublicTarget,
   summarizeRdap,
+  generateFakeIps,
 } from '../utils/ip.js';
 
 const resolver = new Resolver();
@@ -475,6 +476,29 @@ async function handleAir(interaction) {
   }
 }
 
+export async function handleGenerate(interaction) {
+  const count = interaction.options.getInteger('count') ?? 1;
+  const kind = interaction.options.getString('type') ?? 'v4';
+  const rows = generateFakeIps(count, kind);
+  const lines = rows.map((row) => {
+    const f = row.flavor;
+    return `**\`${row.ip}\`**\n${f.city}, ${f.region}, ${f.country} · ${f.isp}\n${f.as} · ${row.range}`;
+  });
+  const embed = new EmbedBuilder()
+    .setColor('#FF5C5C')
+    .setTitle(rows.length === 1 ? 'FAKE IP generator' : `FAKE IP generator · ${rows.length}`)
+    .setDescription(
+      [
+        'These **look** like public IPs. They are **not real**.',
+        'Documentation / benchmark ranges only. Nobody got assigned these.',
+        '',
+        lines.join('\n\n'),
+      ].join('\n'),
+    )
+    .setFooter({ text: 'FAKE · RFC 5737 / RFC 2544 / RFC 3849 · not a Discord user IP' });
+  return interaction.reply({ embeds: [embed] });
+}
+
 function handleMine(interaction) {
   const embed = new EmbedBuilder()
     .setColor(0x8B1E3F)
@@ -537,6 +561,9 @@ export async function handleIpCommand(interaction) {
       return handleAir(interaction);
     case 'mine':
       return handleMine(interaction);
+    case 'generate':
+    case 'gen':
+      return handleGenerate(interaction);
     default:
       return interaction.reply({ content: 'Unknown ip command.', ephemeral: true });
   }
