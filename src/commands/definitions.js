@@ -376,6 +376,57 @@ export const ipCommand = new SlashCommandBuilder()
       .setName('joke')
       .setDescription('Fake TEST-NET trace (not real)')
       .addUserOption((opt) => opt.setName('user').setDescription('Who to fake-trace')),
+  )
+  .addSubcommand((sub) =>
+    sub
+      .setName('whois')
+      .setDescription('Public RDAP / WHOIS for a public IP or domain')
+      .addStringOption((opt) =>
+        opt.setName('ip').setDescription('Public IP or domain').setRequired(true),
+      ),
+  )
+  .addSubcommand((sub) =>
+    sub
+      .setName('convert')
+      .setDescription('Convert an IPv4 to decimal, hex, and binary')
+      .addStringOption((opt) =>
+        opt.setName('ip').setDescription('IPv4 address').setRequired(true),
+      ),
+  )
+  .addSubcommand((sub) =>
+    sub
+      .setName('cidr')
+      .setDescription('Network math for an IPv4 or CIDR — no host scan')
+      .addStringOption((opt) =>
+        opt.setName('range').setDescription('e.g. 8.8.8.0/24 or 1.1.1.1').setRequired(true),
+      ),
+  )
+  .addSubcommand((sub) =>
+    sub
+      .setName('isp')
+      .setDescription('ISP, org, AS, proxy/hosting for a public IP')
+      .addStringOption((opt) =>
+        opt.setName('ip').setDescription('Public IP or domain').setRequired(true),
+      ),
+  )
+  .addSubcommand((sub) =>
+    sub
+      .setName('sun')
+      .setDescription('Sunrise and sunset near a public IP')
+      .addStringOption((opt) =>
+        opt.setName('ip').setDescription('Public IP or domain').setRequired(true),
+      ),
+  )
+  .addSubcommand((sub) =>
+    sub
+      .setName('air')
+      .setDescription('Air quality near a public IP')
+      .addStringOption((opt) =>
+        opt.setName('ip').setDescription('Public IP or domain').setRequired(true),
+      ),
+  )
+  .addSubcommand((sub) =>
+    sub.setName('mine').setDescription('Why this bot cannot see your Discord IP'),
   );
 
 export const pingCommand = new SlashCommandBuilder()

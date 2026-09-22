@@ -4,11 +4,16 @@ import { errorEmbed } from '../utils/embeds.js';
 import { pick, randInt } from '../utils/game.js';
 import {
   classifyTarget,
+  convertIpv4,
+  describeCidr,
   field,
   haversineKm,
   lookupPublicIp,
+  lookupRdap,
   mapUrl,
+  parseIpv4,
   requirePublicTarget,
+  summarizeRdap,
 } from '../utils/ip.js';
 
 const resolver = new Resolver();
@@ -285,6 +290,207 @@ async function handleWeather(interaction) {
   }
 }
 
+async function handleWhois(interaction) {
+  const raw = interaction.options.getString('ip', true).trim();
+  const parsed = requirePublicTarget(raw);
+  if (!parsed.ok) return reject(interaction, parsed.reason);
+
+  await interaction.deferReply();
+  try {
+    let ip = parsed.value;
+    if (parsed.kind === 'host') {
+      const geo = await lookupPublicIp(parsed.value);
+      if (geo.status !== 'success' || !geo.query) {
+        return interaction.editReply({ embeds: [errorEmbed('Could not resolve that domain to a public IP.')] });
+      }
+      ip = geo.query;
+    }
+    if (parseIpv4(ip) && !requirePublicTarget(ip).ok) {
+      return interaction.editReply({ embeds: [errorEmbed('Resolved address is not public.')] });
+    }
+    const rdap = await lookupRdap(ip);
+    const info = summarizeRdap(rdap);
+    const embed = new EmbedBuilder()
+      .setColor(0x2f3136)
+      .setTitle(`WHOIS / RDAP: ${ip}`)
+      .setDescription('Public registration data only. Not a Discord user lookup.')
+      .addFields(
+        { name: 'Network', value: field(info.name), inline: true },
+        { name: 'Handle', value: field(info.handle), inline: true },
+        { name: 'Type', value: field(info.type), inline: true },
+        { name: 'Range', value: `${field(info.start)} – ${field(info.end)}`, inline: false },
+        { name: 'CIDR', value: field(info.cidr), inline: true },
+        { name: 'Country', value: field(info.country), inline: true },
+        { name: 'Org', value: field(info.org), inline: true },
+      )
+      .setFooter({ text: 'heist · RDAP' })
+      .setTimestamp();
+    if (info.link) embed.setURL(info.link);
+    return interaction.editReply({ embeds: [embed] });
+  } catch (err) {
+    return interaction.editReply({ embeds: [errorEmbed(`WHOIS failed: ${err.message}`)] });
+  }
+}
+
+async function handleConvert(interaction) {
+  const raw = interaction.options.getString('ip', true).trim();
+  const parsed = classifyTarget(raw);
+  if (!parsed.ok) return reject(interaction, parsed.reason);
+  if (parsed.kind !== 'ipv4') {
+    return reject(interaction, 'Convert wants an IPv4 like `8.8.8.8`.');
+  }
+  const conv = convertIpv4(parsed.value);
+  const embed = new EmbedBuilder()
+    .setColor(0x2f3136)
+    .setTitle(`Convert: ${parsed.value}`)
+    .setDescription(`Class **${parsed.class}**. Math only — no scan.`)
+    .addFields(
+      { name: 'Decimal', value: field(conv.decimal), inline: true },
+      { name: 'Hex', value: field(conv.hex), inline: true },
+      { name: 'Binary', value: `\`${conv.binary}\``, inline: false },
+    )
+    .setFooter({ text: 'heist' });
+  return interaction.reply({ embeds: [embed] });
+}
+
+async function handleCidr(interaction) {
+  const raw = interaction.options.getString('range', true).trim();
+  const info = describeCidr(raw);
+  if (!info.ok) return reject(interaction, info.reason);
+  const embed = new EmbedBuilder()
+    .setColor(info.public ? 0x2f3136 : 0x8B1E3F)
+    .setTitle(`CIDR: ${info.cidr}`)
+    .setDescription('Network math only. This does not scan hosts.')
+    .addFields(
+      { name: 'Network', value: info.network, inline: true },
+      { name: 'Broadcast', value: info.broadcast, inline: true },
+      { name: 'Mask', value: info.mask, inline: true },
+      { name: 'First', value: info.first, inline: true },
+      { name: 'Last', value: info.last, inline: true },
+      { name: 'Addresses', value: String(info.size), inline: true },
+      { name: 'Class', value: info.class, inline: true },
+      { name: 'Public', value: info.public ? 'Yes' : 'No', inline: true },
+    )
+    .setFooter({ text: 'heist · no host scan' });
+  return interaction.reply({ embeds: [embed] });
+}
+
+async function handleIsp(interaction) {
+  const raw = interaction.options.getString('ip', true).trim();
+  const parsed = requirePublicTarget(raw);
+  if (!parsed.ok) return reject(interaction, parsed.reason);
+
+  await interaction.deferReply();
+  try {
+    const data = await lookupPublicIp(parsed.value);
+    if (data.status !== 'success') {
+      return interaction.editReply({ embeds: [errorEmbed(data.message || 'Lookup failed.')] });
+    }
+    const embed = new EmbedBuilder()
+      .setColor(0x2f3136)
+      .setTitle(`ISP: ${data.query}`)
+      .setDescription(`${field(data.city)}, ${field(data.country)}`)
+      .addFields(
+        { name: 'ISP', value: field(data.isp), inline: true },
+        { name: 'Org', value: field(data.org), inline: true },
+        { name: 'AS', value: field(data.as), inline: true },
+        { name: 'Proxy', value: field(data.proxy), inline: true },
+        { name: 'Hosting', value: field(data.hosting), inline: true },
+        { name: 'Timezone', value: field(data.timezone), inline: true },
+      )
+      .setFooter({ text: 'heist · public geo only' })
+      .setTimestamp();
+    return interaction.editReply({ embeds: [embed] });
+  } catch (err) {
+    return interaction.editReply({ embeds: [errorEmbed(`ISP failed: ${err.message}`)] });
+  }
+}
+
+async function handleSun(interaction) {
+  const raw = interaction.options.getString('ip', true).trim();
+  const parsed = requirePublicTarget(raw);
+  if (!parsed.ok) return reject(interaction, parsed.reason);
+
+  await interaction.deferReply();
+  try {
+    const data = await lookupPublicIp(parsed.value);
+    if (data.status !== 'success' || data.lat == null || data.lon == null) {
+      return interaction.editReply({ embeds: [errorEmbed('No public coordinates for sunrise/sunset.')] });
+    }
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${data.lat}&longitude=${data.lon}&daily=sunrise,sunset&timezone=${encodeURIComponent(data.timezone || 'auto')}`;
+    const sun = await fetch(url, { headers: { 'User-Agent': 'geekbar-bot' } }).then((r) => r.json());
+    const rise = sun.daily?.sunrise?.[0];
+    const set = sun.daily?.sunset?.[0];
+    if (!rise || !set) {
+      return interaction.editReply({ embeds: [errorEmbed('Sun API returned nothing.')] });
+    }
+    const embed = new EmbedBuilder()
+      .setColor(0x2f3136)
+      .setTitle(`Sun: ${data.query}`)
+      .setDescription(`${field(data.city)}, ${field(data.country)}`)
+      .addFields(
+        { name: 'Sunrise', value: rise.replace('T', ' '), inline: true },
+        { name: 'Sunset', value: set.replace('T', ' '), inline: true },
+        { name: 'Timezone', value: field(data.timezone), inline: true },
+      )
+      .setFooter({ text: 'heist · Open-Meteo + public geo' })
+      .setTimestamp();
+    return interaction.editReply({ embeds: [embed] });
+  } catch (err) {
+    return interaction.editReply({ embeds: [errorEmbed(`Sun failed: ${err.message}`)] });
+  }
+}
+
+async function handleAir(interaction) {
+  const raw = interaction.options.getString('ip', true).trim();
+  const parsed = requirePublicTarget(raw);
+  if (!parsed.ok) return reject(interaction, parsed.reason);
+
+  await interaction.deferReply();
+  try {
+    const data = await lookupPublicIp(parsed.value);
+    if (data.status !== 'success' || data.lat == null || data.lon == null) {
+      return interaction.editReply({ embeds: [errorEmbed('No public coordinates for air quality.')] });
+    }
+    const url = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${data.lat}&longitude=${data.lon}&current=us_aqi,pm2_5,pm10`;
+    const air = await fetch(url, { headers: { 'User-Agent': 'geekbar-bot' } }).then((r) => r.json());
+    const cur = air.current;
+    if (!cur) {
+      return interaction.editReply({ embeds: [errorEmbed('Air quality API returned nothing.')] });
+    }
+    const embed = new EmbedBuilder()
+      .setColor(0x2f3136)
+      .setTitle(`Air: ${data.query}`)
+      .setDescription(`${field(data.city)}, ${field(data.country)}`)
+      .addFields(
+        { name: 'US AQI', value: field(cur.us_aqi), inline: true },
+        { name: 'PM2.5', value: field(cur.pm2_5), inline: true },
+        { name: 'PM10', value: field(cur.pm10), inline: true },
+      )
+      .setFooter({ text: 'heist · Open-Meteo + public geo' })
+      .setTimestamp();
+    return interaction.editReply({ embeds: [embed] });
+  } catch (err) {
+    return interaction.editReply({ embeds: [errorEmbed(`Air failed: ${err.message}`)] });
+  }
+}
+
+function handleMine(interaction) {
+  const embed = new EmbedBuilder()
+    .setColor(0x8B1E3F)
+    .setTitle('Your Discord IP')
+    .setDescription(
+      [
+        'This bot **cannot** see your Discord IP.',
+        'Discord does not give bots user IPs. Mentions, usernames, and DMs do not reveal one.',
+        'Anyone offering a Discord IP grab is lying or using a malicious link.',
+        'Use `/ip lookup` on a **public IP or domain**, like `8.8.8.8` or `discord.com`.',
+      ].join('\n'),
+    )
+    .setFooter({ text: 'heist · no user IPs' });
+  return interaction.reply({ embeds: [embed] });
+}
+
 async function handleJoke(interaction) {
   const target = interaction.options.getUser('user') ?? interaction.user;
   const ip = `203.0.113.${randInt(1, 254)}`;
@@ -317,6 +523,20 @@ export async function handleIpCommand(interaction) {
       return handleWeather(interaction);
     case 'joke':
       return handleJoke(interaction);
+    case 'whois':
+      return handleWhois(interaction);
+    case 'convert':
+      return handleConvert(interaction);
+    case 'cidr':
+      return handleCidr(interaction);
+    case 'isp':
+      return handleIsp(interaction);
+    case 'sun':
+      return handleSun(interaction);
+    case 'air':
+      return handleAir(interaction);
+    case 'mine':
+      return handleMine(interaction);
     default:
       return interaction.reply({ content: 'Unknown ip command.', ephemeral: true });
   }

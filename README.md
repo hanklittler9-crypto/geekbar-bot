@@ -163,6 +163,13 @@ Public IP tools (not Discord user IPs; private / reserved ranges are rejected):
 | `/ip time` | Timezone + local time at a public target |
 | `/ip weather` | Weather near the public geo city |
 | `/ip joke` `/fakeip` | Fake TEST-NET trace (not real) |
+| `/ip whois` | Public RDAP / WHOIS registration |
+| `/ip convert` | IPv4 → decimal / hex / binary |
+| `/ip cidr` | Network math (no host scan) |
+| `/ip isp` | ISP, org, AS, proxy/hosting |
+| `/ip sun` | Sunrise / sunset at public geo |
+| `/ip air` | Air quality at public geo |
+| `/ip mine` | Explains the bot cannot see Discord user IPs |
 
 ## Game notes
 
