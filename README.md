@@ -170,6 +170,7 @@ Public IP tools (not Discord user IPs; private / reserved ranges are rejected):
 | `/ip sun` | Sunrise / sunset at public geo |
 | `/ip air` | Air quality at public geo |
 | `/ip mine` | Explains the bot cannot see Discord user IPs |
+| `/ip generate` `/ipgen` | Fake IPs that look public (TEST-NET / docs ranges only) |
 
 ## Game notes
 

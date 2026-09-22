@@ -427,6 +427,61 @@ export const ipCommand = new SlashCommandBuilder()
   )
   .addSubcommand((sub) =>
     sub.setName('mine').setDescription('Why this bot cannot see your Discord IP'),
+  )
+  .addSubcommand((sub) =>
+    sub
+      .setName('generate')
+      .setDescription('Generate fake IPs that look real (documentation ranges only)')
+      .addIntegerOption((opt) =>
+        opt.setName('count').setDescription('How many (1-8)').setMinValue(1).setMaxValue(8),
+      )
+      .addStringOption((opt) =>
+        opt
+          .setName('type')
+          .setDescription('Address family')
+          .addChoices(
+            { name: 'IPv4 (looks public)', value: 'v4' },
+            { name: 'IPv6 (looks public)', value: 'v6' },
+            { name: 'Mix', value: 'both' },
+          ),
+      ),
+  )
+  .addSubcommand((sub) =>
+    sub
+      .setName('gen')
+      .setDescription('Alias of /ip generate — fake IPs that look real')
+      .addIntegerOption((opt) =>
+        opt.setName('count').setDescription('How many (1-8)').setMinValue(1).setMaxValue(8),
+      )
+      .addStringOption((opt) =>
+        opt
+          .setName('type')
+          .setDescription('Address family')
+          .addChoices(
+            { name: 'IPv4 (looks public)', value: 'v4' },
+            { name: 'IPv6 (looks public)', value: 'v6' },
+            { name: 'Mix', value: 'both' },
+          ),
+      ),
+  );
+
+export const ipGenCommand = new SlashCommandBuilder()
+  .setName('ipgen')
+  .setDescription('Generate fake IPs that look real (not actual addresses)')
+  .setIntegrationTypes(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)
+  .setContexts(...contexts)
+  .addIntegerOption((opt) =>
+    opt.setName('count').setDescription('How many (1-8)').setMinValue(1).setMaxValue(8),
+  )
+  .addStringOption((opt) =>
+    opt
+      .setName('type')
+      .setDescription('Address family')
+      .addChoices(
+        { name: 'IPv4 (looks public)', value: 'v4' },
+        { name: 'IPv6 (looks public)', value: 'v6' },
+        { name: 'Mix', value: 'both' },
+      ),
   );
 
 export const pingCommand = new SlashCommandBuilder()
@@ -450,6 +505,6 @@ export const memeCommands = MEME_GIFS.map((meme) =>
     .setContexts(...contexts),
 );
 
-export const commands = [geekbarCommand, cloudCommand, funCommand, ipCommand, ipLookupCommand, pingCommand, fakeIpCommand, ...memeCommands];
+export const commands = [geekbarCommand, cloudCommand, funCommand, ipCommand, ipGenCommand, ipLookupCommand, pingCommand, fakeIpCommand, ...memeCommands];
 
 export const GIF_EFFECT_CHOICES = GIF_EFFECTS.map((e) => ({ name: `${e.emoji} ${e.name}`, value: e.id }));
