@@ -293,6 +293,7 @@ export async function handleHelp(interaction) {
         value: [
           '`/fun 8ball` `aura` `rizz` `rate` `ship`',
           '`/ip lookup` `dns` `reverse` `map` `compare` `check` `time` `weather` `joke`',
+          '`/ip whois` `convert` `cidr` `isp` `sun` `air` `mine`',
           '`/iplookup` — public IP or domain geo/ISP (not Discord users)',
           '`/ping` — bot latency',
           '`/fakeip` — joke fake trace (not real)',

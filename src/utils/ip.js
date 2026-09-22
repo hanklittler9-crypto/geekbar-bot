@@ -100,3 +100,85 @@ export function haversineKm(lat1, lon1, lat2, lon2) {
 export function mapUrl(lat, lon) {
   return `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=10/${lat}/${lon}`;
 }
+
+export function ipv4ToInt(ip) {
+  const p = parseIpv4(ip);
+  if (!p) return null;
+  return ((p[0] << 24) >>> 0) + (p[1] << 16) + (p[2] << 8) + p[3];
+}
+
+export function intToIpv4(n) {
+  const x = n >>> 0;
+  return `${(x >>> 24) & 255}.${(x >>> 16) & 255}.${(x >>> 8) & 255}.${x & 255}`;
+}
+
+export function convertIpv4(ip) {
+  const n = ipv4ToInt(ip);
+  if (n == null) return null;
+  return {
+    dotted: ip,
+    decimal: String(n),
+    hex: `0x${n.toString(16).padStart(8, '0')}`,
+    binary: n.toString(2).padStart(32, '0').replace(/(.{8})/g, '$1 ').trim(),
+  };
+}
+
+export function describeCidr(raw) {
+  const value = String(raw || '').trim();
+  const match = value.match(/^((?:\d{1,3}\.){3}\d{1,3})(?:\/(\d{1,2}))?$/);
+  if (!match) return { ok: false, reason: 'Give an IPv4 or CIDR like `8.8.8.8` or `1.1.1.0/24`.' };
+  const ip = match[1];
+  const bits = match[2] == null ? 32 : Number(match[2]);
+  if (!parseIpv4(ip) || bits < 0 || bits > 32) {
+    return { ok: false, reason: 'Give an IPv4 or CIDR like `8.8.8.8` or `1.1.1.0/24`.' };
+  }
+  const addr = ipv4ToInt(ip);
+  const mask = bits === 0 ? 0 : (0xffffffff << (32 - bits)) >>> 0;
+  const network = (addr & mask) >>> 0;
+  const broadcast = (network | (~mask >>> 0)) >>> 0;
+  const size = 2 ** (32 - bits);
+  const klass = classifyIpv4(intToIpv4(network === 0 && bits === 0 ? 0 : network)) || classifyIpv4(ip);
+  return {
+    ok: true,
+    cidr: `${intToIpv4(network)}/${bits}`,
+    ip,
+    bits,
+    network: intToIpv4(network),
+    broadcast: intToIpv4(broadcast),
+    mask: intToIpv4(mask),
+    first: bits >= 31 ? intToIpv4(network) : intToIpv4(network + 1),
+    last: bits >= 31 ? intToIpv4(broadcast) : intToIpv4(broadcast - 1),
+    size,
+    class: klass,
+    public: klass === 'public',
+  };
+}
+
+export async function lookupRdap(ip) {
+  const res = await fetch(`https://rdap.org/ip/${encodeURIComponent(ip)}`, {
+    headers: { 'User-Agent': 'geekbar-bot', Accept: 'application/rdap+json, application/json' },
+  });
+  if (!res.ok) throw new Error(`RDAP ${res.status}`);
+  return res.json();
+}
+
+export function summarizeRdap(data) {
+  const vcard = data.entities?.[0]?.vcardArray?.[1] || [];
+  const fn = vcard.find((row) => row[0] === 'fn')?.[3];
+  const country = data.country || vcard.find((row) => row[0] === 'adr')?.[1]?.cc;
+  return {
+    name: data.name || 'N/A',
+    handle: data.handle || 'N/A',
+    type: data.type || 'N/A',
+    start: data.startAddress || 'N/A',
+    end: data.endAddress || 'N/A',
+    cidr: data.cidr0_cidrs?.[0]
+      ? `${data.cidr0_cidrs[0].v4prefix}/${data.cidr0_cidrs[0].length}`
+      : (data.cidr0_cidrs?.[0]?.v6prefix
+        ? `${data.cidr0_cidrs[0].v6prefix}/${data.cidr0_cidrs[0].length}`
+        : (Array.isArray(data.cidr0_cidrs) && data.cidr0_cidrs.length ? JSON.stringify(data.cidr0_cidrs[0]) : 'N/A')),
+    country: country || 'N/A',
+    org: fn || data.entities?.[0]?.handle || 'N/A',
+    link: data.links?.find((l) => l.rel === 'self')?.href || '',
+  };
+}
