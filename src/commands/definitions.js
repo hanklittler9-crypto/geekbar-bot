@@ -303,6 +303,20 @@ export const ipLookupCommand = new SlashCommandBuilder()
     opt.setName('target').setDescription('Public IP or domain, e.g. 8.8.8.8 or discord.com').setRequired(true),
   );
 
+export const ipCommand = new SlashCommandBuilder()
+  .setName('ip')
+  .setDescription('IP lookup')
+  .setIntegrationTypes(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)
+  .setContexts(...contexts)
+  .addSubcommand((sub) =>
+    sub
+      .setName('lookup')
+      .setDescription('Look up a public IP or domain')
+      .addStringOption((opt) =>
+        opt.setName('ip').setDescription('Public IP or domain to look up').setRequired(true),
+      ),
+  );
+
 export const pingCommand = new SlashCommandBuilder()
   .setName('ping')
   .setDescription('Bot latency')
@@ -324,6 +338,6 @@ export const memeCommands = MEME_GIFS.map((meme) =>
     .setContexts(...contexts),
 );
 
-export const commands = [geekbarCommand, cloudCommand, funCommand, ipLookupCommand, pingCommand, fakeIpCommand, ...memeCommands];
+export const commands = [geekbarCommand, cloudCommand, funCommand, ipCommand, ipLookupCommand, pingCommand, fakeIpCommand, ...memeCommands];
 
 export const GIF_EFFECT_CHOICES = GIF_EFFECTS.map((e) => ({ name: `${e.emoji} ${e.name}`, value: e.id }));

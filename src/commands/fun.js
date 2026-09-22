@@ -13,8 +13,45 @@ function isIpOrHost(value) {
   return /^(?:(?:[a-z0-9-]+\.)+[a-z]{2,}|(?:\d{1,3}\.){3}\d{1,3}|[a-f0-9:]+)$/i.test(v);
 }
 
+function field(value) {
+  if (value === true) return 'Yes';
+  if (value === false) return 'No';
+  if (value == null || value === '') return 'N/A';
+  return String(value).slice(0, 1024);
+}
+
+async function lookupPublicIp(query) {
+  const url = `http://ip-api.com/json/${encodeURIComponent(query)}?fields=status,message,continent,continentCode,country,countryCode,region,regionName,city,zip,lat,lon,timezone,isp,org,as,proxy,hosting,query`;
+  const res = await fetch(url, { headers: { 'User-Agent': 'geekbar-bot' } });
+  return res.json();
+}
+
+function ipLookupEmbed(d) {
+  const coords = d.lat == null || d.lon == null ? 'N/A' : `${d.lat}, ${d.lon}`;
+  return new EmbedBuilder()
+    .setColor(0x2f3136)
+    .setTitle(`IP Lookup: ${d.query}`)
+    .setDescription('Public geo/ISP data only. This does not show Discord user IPs.')
+    .addFields(
+      { name: 'Continent', value: `${field(d.continent)} (${field(d.continentCode)})`, inline: true },
+      { name: 'Country', value: `${field(d.country)} (${field(d.countryCode)})`, inline: true },
+      { name: 'Region', value: `${field(d.regionName)} (${field(d.region)})`, inline: true },
+      { name: 'City', value: field(d.city), inline: true },
+      { name: 'Zip', value: field(d.zip), inline: true },
+      { name: 'Coords', value: coords, inline: true },
+      { name: 'Timezone', value: field(d.timezone), inline: true },
+      { name: 'ISP', value: field(d.isp), inline: true },
+      { name: 'Org', value: field(d.org), inline: true },
+      { name: 'AS', value: field(d.as), inline: true },
+      { name: 'Proxy', value: field(d.proxy), inline: true },
+      { name: 'Hosting', value: field(d.hosting), inline: true },
+    )
+    .setFooter({ text: 'heist' })
+    .setTimestamp();
+}
+
 export async function handleIpLookup(interaction) {
-  const query = interaction.options.getString('target', true).trim();
+  const query = (interaction.options.getString('ip') ?? interaction.options.getString('target') ?? '').trim();
   if (!isIpOrHost(query)) {
     return interaction.reply({
       embeds: [errorEmbed('Give a public IP or domain like `8.8.8.8` or `discord.com`. Private IPs and Discord users are not supported.')],
@@ -24,29 +61,22 @@ export async function handleIpLookup(interaction) {
 
   await interaction.deferReply();
   try {
-    const url = `http://ip-api.com/json/${encodeURIComponent(query)}?fields=status,message,country,regionName,city,isp,org,as,query,timezone`;
-    const res = await fetch(url, { headers: { 'User-Agent': 'geekbar-bot' } });
-    const data = await res.json();
+    const data = await lookupPublicIp(query);
     if (data.status !== 'success') {
-      return interaction.editReply({ embeds: [errorEmbed(data.message || 'Lookup failed.')] });
+      return interaction.editReply({ embeds: [errorEmbed(data.message || `Failed to lookup \`${query}\`.`)] });
     }
-    const embed = new EmbedBuilder()
-      .setColor(ACCENT)
-      .setTitle(`IP lookup — ${data.query}`)
-      .setDescription('Public geo/ISP data only. This does not show Discord user IPs.')
-      .addFields(
-        { name: 'Country', value: data.country || '—', inline: true },
-        { name: 'Region', value: data.regionName || '—', inline: true },
-        { name: 'City', value: data.city || '—', inline: true },
-        { name: 'ISP', value: data.isp || '—', inline: true },
-        { name: 'Org', value: data.org || '—', inline: true },
-        { name: 'ASN', value: data.as || '—', inline: true },
-        { name: 'Timezone', value: data.timezone || '—', inline: true },
-      );
-    return interaction.editReply({ embeds: [embed] });
-  } catch {
-    return interaction.editReply({ embeds: [errorEmbed('Lookup API is down. Try again later.')] });
+    return interaction.editReply({ embeds: [ipLookupEmbed(data)] });
+  } catch (err) {
+    return interaction.editReply({
+      embeds: [errorEmbed(`Failed to lookup \`${query}\`: ${err.message || 'Lookup API is down.'}`)],
+    });
   }
+}
+
+export async function handleIpCommand(interaction) {
+  const sub = interaction.options.getSubcommand();
+  if (sub === 'lookup') return handleIpLookup(interaction);
+  return interaction.reply({ content: 'Unknown ip command.', ephemeral: true });
 }
 
 export async function handleFakeIp(interaction) {

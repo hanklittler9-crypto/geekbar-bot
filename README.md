@@ -132,6 +132,26 @@ Or register commands without starting:
 npm run deploy-commands
 ```
 
+### Adding your own slash command
+
+You can paste a command yourself on GitHub, or ask the agent to add it. This repo is ESM (`import`, not `require`).
+
+1. Define the slash command in `src/commands/definitions.js`
+2. Write the handler (usually `src/commands/fun.js` or a new file)
+3. Route it in `src/commands/router.js`
+4. Commit, push, open a PR (or merge to `master`)
+5. On the Ubuntu box:
+
+```bash
+cd /home/gfxastro/geekbar-bot
+git pull
+pm2 restart geekbar
+```
+
+Commands register again on startup. Global ones can take a few minutes to show.
+
+Public IP lookups: `/ip lookup` and `/iplookup`. Private IPs and Discord users are rejected.
+
 ## Game notes
 
 - **Battery** — each hit costs 4%. Charge to refill (3 min cooldown).
